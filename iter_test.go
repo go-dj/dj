@@ -341,3 +341,50 @@ func Test_JoinIter(t *testing.T) {
 		})
 	}
 }
+
+func Test_ZipIter(t *testing.T) {
+	tests := []struct {
+		name string
+		in   []xn.Iter[int]
+		want [][]int
+	}{
+		{
+			name: "[[1, 2], [3, 4]]",
+			in: []xn.Iter[int]{
+				xn.SliceIter(1, 2),
+				xn.SliceIter(3, 4),
+			},
+			want: [][]int{{1, 3}, {2, 4}},
+		},
+
+		{
+			name: "[[1, 2], [3, 4], [5, 6]]",
+			in: []xn.Iter[int]{
+				xn.SliceIter(1, 2),
+				xn.SliceIter(3, 4),
+				xn.SliceIter(5, 6),
+			},
+			want: [][]int{{1, 3, 5}, {2, 4, 6}},
+		},
+
+		{
+			name: "[[1, 2], [3]]",
+			in: []xn.Iter[int]{
+				xn.SliceIter(1, 2),
+				xn.SliceIter(3),
+			},
+			want: [][]int{{1, 3}},
+		},
+
+		{
+			name: "empty",
+			in:   []xn.Iter[int]{},
+			want: [][]int{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, xn.ZipIter(tt.in...).Collect())
+		})
+	}
+}

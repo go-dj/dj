@@ -171,10 +171,17 @@ func GoMapWindowIdx[T, U any](ctx context.Context, slice []T, size int, fn func(
 	})
 }
 
-// Range returns a slice of integers from 0 to n-1.
-func Range(n int) []int {
+// RangeN returns a slice of integers from 0 to n-1.
+func RangeN(n int) []int {
 	return MapN(n, func(i int) int {
 		return i
+	})
+}
+
+// Range returns a slice of integers from start to end-1.
+func Range(start, end int) []int {
+	return MapN(end-start, func(i int) int {
+		return start + i
 	})
 }
 
@@ -509,7 +516,7 @@ func Permutations[T any](in []T) [][]T {
 
 // PermutationsIdx returns a slice containing the indices of all the possible permutations of a slice of the given length.
 func PermutationsIdx(n int) [][]int {
-	return permute(Range(n), factorial(n), 0)
+	return permute(RangeN(n), factorial(n), 0)
 }
 
 // Shuffle returns a shuffled slice of the given slice.

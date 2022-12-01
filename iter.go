@@ -146,3 +146,32 @@ func (i *flattenIter[T]) Next() (T, bool) {
 func JoinIter[T any](iters ...Iter[T]) Iter[T] {
 	return FlattenIter(SliceIter(iters...))
 }
+
+// ZipIter returns an iterator over the given iterators, zipping the values together.
+// That is, it converts an iterator over iterators into an iterator over tuples of the values of those iterators.
+func ZipIter[T any](iters ...Iter[T]) Iter[[]T] {
+	return NewIter[[]T](&zipIter[T]{iters: iters})
+}
+
+type zipIter[T any] struct {
+	iters []Iter[T]
+}
+
+func (i *zipIter[T]) Next() ([]T, bool) {
+	if len(i.iters) == 0 {
+		return nil, false
+	}
+
+	out := make([]T, len(i.iters))
+
+	for j, iter := range i.iters {
+		v, ok := iter.Next()
+		if !ok {
+			return nil, false
+		}
+
+		out[j] = v
+	}
+
+	return out, true
+}

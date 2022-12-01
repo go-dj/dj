@@ -350,7 +350,7 @@ func Test_PermutationsIdx(t *testing.T) {
 }
 
 func Test_Shuffle(t *testing.T) {
-	for _, slice := range xn.Permutations(xn.Range(6)) {
+	for _, slice := range xn.Permutations(xn.RangeN(6)) {
 		require.Equal(t, xn.Sort(xn.Shuffle(slice)), xn.Sort(slice))
 	}
 }

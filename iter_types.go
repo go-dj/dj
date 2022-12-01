@@ -1,5 +1,7 @@
 package xn
 
+import "context"
+
 // Iter is a type that can be read sequentially.
 type Iter[T any] interface {
 	Iterable[T]
@@ -49,16 +51,27 @@ func (i *sliceIter[T]) Next() (T, bool) {
 
 // ChanIter returns an iterator over the given channel.
 func ChanIter[T any](ch <-chan T) Iter[T] {
-	return NewIter[T](&chanIter[T]{ch: ch})
+	return NewIter[T](&chanIter[T]{ctx: context.Background(), ch: ch})
+}
+
+// ChanIterCtx returns an iterator over the given channel, which will be closed when the given context is canceled.
+func ChanIterCtx[T any](ctx context.Context, ch <-chan T) Iter[T] {
+	return NewIter[T](&chanIter[T]{ctx: ctx, ch: ch})
 }
 
 type chanIter[T any] struct {
-	ch <-chan T
+	ctx context.Context
+	ch  <-chan T
 }
 
 func (i *chanIter[T]) Next() (T, bool) {
-	v, ok := <-i.ch
-	return v, ok
+	select {
+	case <-i.ctx.Done():
+		return zero[T](), false
+
+	case v, ok := <-i.ch:
+		return v, ok
+	}
 }
 
 // FuncIter returns an iterator over the given function.
