@@ -1,16 +1,41 @@
 package xn
 
-// IterSlice returns an iterator over the given slice.
-func IterSlice[T any](slice ...T) Iter[T] {
-	return &iterBase[T]{iterable: &iterSlice[T]{slice: slice}}
+// Iter is a type that can be read sequentially.
+type Iter[T any] interface {
+	Iterable[T]
+
+	// For calls the given function for each value in the iterator.
+	For(func(T))
+
+	// ForIdx calls the given function for each value in the iterator, along with the index of the value.
+	ForIdx(func(int, T))
+
+	// Collect returns a slice containing all the values in the iterator.
+	Collect() []T
+
+	// Chan returns a channel that will receive all the values in the iterator.
+	Chan() <-chan T
+
+	// WriteTo writes all the values in the iterator to the given writable.
+	WriteTo(Writable[T]) (int, bool)
 }
 
-type iterSlice[T any] struct {
+// NewIter returns a new Iter that reads from the given Iterable.
+func NewIter[T any](r Iterable[T]) Iter[T] {
+	return &iter[T]{Iterable: r}
+}
+
+// SliceIter returns an iterator over the given slice.
+func SliceIter[T any](slice ...T) Iter[T] {
+	return NewIter[T](&sliceIter[T]{slice: slice})
+}
+
+type sliceIter[T any] struct {
 	slice []T
 	index int
 }
 
-func (i *iterSlice[T]) Next() (T, bool) {
+func (i *sliceIter[T]) Next() (T, bool) {
 	if i.index >= len(i.slice) {
 		return zero[T](), false
 	}
@@ -22,29 +47,29 @@ func (i *iterSlice[T]) Next() (T, bool) {
 	return v, true
 }
 
-// IterChan returns an iterator over the given channel.
-func IterChan[T any](ch <-chan T) Iter[T] {
-	return &iterBase[T]{iterable: &iterChan[T]{ch: ch}}
+// ChanIter returns an iterator over the given channel.
+func ChanIter[T any](ch <-chan T) Iter[T] {
+	return NewIter[T](&chanIter[T]{ch: ch})
 }
 
-type iterChan[T any] struct {
+type chanIter[T any] struct {
 	ch <-chan T
 }
 
-func (i *iterChan[T]) Next() (T, bool) {
+func (i *chanIter[T]) Next() (T, bool) {
 	v, ok := <-i.ch
 	return v, ok
 }
 
-// IterFunc returns an iterator over the given function.
-func IterFunc[T any](fn func() (T, bool)) Iter[T] {
-	return &iterBase[T]{iterable: &iterFunc[T]{fn: fn}}
+// FuncIter returns an iterator over the given function.
+func FuncIter[T any](fn func() (T, bool)) Iter[T] {
+	return NewIter[T](&funcIter[T]{fn: fn})
 }
 
-type iterFunc[T any] struct {
+type funcIter[T any] struct {
 	fn func() (T, bool)
 }
 
-func (i *iterFunc[T]) Next() (T, bool) {
+func (i *funcIter[T]) Next() (T, bool) {
 	return i.fn()
 }

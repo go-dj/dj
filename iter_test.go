@@ -7,55 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_Iter_Read(t *testing.T) {
-	tests := []struct {
-		name string
-		in   xn.Iter[int]
-		n    int
-		want []int
-	}{
-		{
-			name: "single",
-			in:   xn.IterSlice(1),
-			n:    1,
-			want: []int{1},
-		},
-
-		{
-			name: "double",
-			in:   xn.IterSlice(1, 2),
-			n:    2,
-			want: []int{1, 2},
-		},
-
-		{
-			name: "empty",
-			in:   xn.IterSlice[int](),
-			n:    1,
-			want: []int{},
-		},
-
-		{
-			name: "more than available",
-			in:   xn.IterSlice(1, 2),
-			n:    3,
-			want: []int{1, 2},
-		},
-
-		{
-			name: "less than available",
-			in:   xn.IterSlice(1, 2),
-			n:    1,
-			want: []int{1},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, tt.in.Read(tt.n))
-		})
-	}
-}
-
 func Test_Iter_Collect(t *testing.T) {
 	tests := []struct {
 		name string
@@ -64,19 +15,19 @@ func Test_Iter_Collect(t *testing.T) {
 	}{
 		{
 			name: "single",
-			in:   xn.IterSlice(1),
+			in:   xn.SliceIter(1),
 			want: []int{1},
 		},
 
 		{
 			name: "double",
-			in:   xn.IterSlice(1, 2),
+			in:   xn.SliceIter(1, 2),
 			want: []int{1, 2},
 		},
 
 		{
 			name: "empty",
-			in:   xn.IterSlice[int](),
+			in:   xn.SliceIter[int](),
 			want: []int{},
 		},
 	}
@@ -95,19 +46,19 @@ func Test_Iter_Chan(t *testing.T) {
 	}{
 		{
 			name: "single",
-			in:   xn.IterSlice(1),
+			in:   xn.SliceIter(1),
 			want: []int{1},
 		},
 
 		{
 			name: "double",
-			in:   xn.IterSlice(1, 2),
+			in:   xn.SliceIter(1, 2),
 			want: []int{1, 2},
 		},
 
 		{
 			name: "empty",
-			in:   xn.IterSlice[int](),
+			in:   xn.SliceIter[int](),
 			want: nil,
 		},
 	}
@@ -119,9 +70,9 @@ func Test_Iter_Chan(t *testing.T) {
 }
 
 func Test_WithPeek(t *testing.T) {
-	iter := xn.WithPeek(xn.IterSlice(1, 2, 3))
+	iter := xn.WithPeek(xn.SliceIter(1, 2, 3))
 
-	// Call next to get the first value.
+	// Call read to get the first value.
 	{
 		next, ok := iter.Next()
 		require.True(t, ok)
@@ -142,7 +93,7 @@ func Test_WithPeek(t *testing.T) {
 		require.Equal(t, 2, peek)
 	}
 
-	// Call next to get the next value.
+	// Call read to get the next value.
 	{
 		next, ok := iter.Next()
 		require.True(t, ok)
@@ -156,7 +107,7 @@ func Test_WithPeek(t *testing.T) {
 		require.Equal(t, 3, peek)
 	}
 
-	// Call next to get the last value.
+	// Call read to get the last value.
 	{
 		next, ok := iter.Next()
 		require.True(t, ok)
@@ -185,21 +136,21 @@ func Test_MapIter(t *testing.T) {
 	}{
 		{
 			name: "add 1",
-			in:   xn.IterSlice(1, 2, 3),
+			in:   xn.SliceIter(1, 2, 3),
 			fn:   func(i int) int { return i + 1 },
 			want: []int{2, 3, 4},
 		},
 
 		{
 			name: "double",
-			in:   xn.IterSlice(1, 2, 3),
+			in:   xn.SliceIter(1, 2, 3),
 			fn:   func(i int) int { return i * 2 },
 			want: []int{2, 4, 6},
 		},
 
 		{
 			name: "empty",
-			in:   xn.IterSlice[int](),
+			in:   xn.SliceIter[int](),
 			fn:   func(i int) int { return i + 1 },
 			want: []int{},
 		},
@@ -220,35 +171,35 @@ func Test_ChunkIter(t *testing.T) {
 	}{
 		{
 			name: "[1, 2, 3] size 1",
-			in:   xn.IterSlice(1, 2, 3),
+			in:   xn.SliceIter(1, 2, 3),
 			size: 1,
 			want: [][]int{{1}, {2}, {3}},
 		},
 
 		{
 			name: "[1, 2, 3] size 2",
-			in:   xn.IterSlice(1, 2, 3),
+			in:   xn.SliceIter(1, 2, 3),
 			size: 2,
 			want: [][]int{{1, 2}, {3}},
 		},
 
 		{
 			name: "[1, 2, 3] size 3",
-			in:   xn.IterSlice(1, 2, 3),
+			in:   xn.SliceIter(1, 2, 3),
 			size: 3,
 			want: [][]int{{1, 2, 3}},
 		},
 
 		{
 			name: "[1, 2, 3] size 4",
-			in:   xn.IterSlice(1, 2, 3),
+			in:   xn.SliceIter(1, 2, 3),
 			size: 4,
 			want: [][]int{{1, 2, 3}},
 		},
 
 		{
 			name: "empty",
-			in:   xn.IterSlice[int](),
+			in:   xn.SliceIter[int](),
 			size: 1,
 			want: [][]int{},
 		},
@@ -269,21 +220,21 @@ func Test_FilterIter(t *testing.T) {
 	}{
 		{
 			name: "odd",
-			in:   xn.IterSlice(1, 2, 3),
+			in:   xn.SliceIter(1, 2, 3),
 			fn:   func(i int) bool { return i%2 == 1 },
 			want: []int{1, 3},
 		},
 
 		{
 			name: "even",
-			in:   xn.IterSlice(1, 2, 3),
+			in:   xn.SliceIter(1, 2, 3),
 			fn:   func(i int) bool { return i%2 == 0 },
 			want: []int{2},
 		},
 
 		{
 			name: "empty",
-			in:   xn.IterSlice[int](),
+			in:   xn.SliceIter[int](),
 			fn:   func(i int) bool { return i%2 == 0 },
 			want: []int{},
 		},
@@ -303,36 +254,36 @@ func Test_FlattenIter(t *testing.T) {
 	}{
 		{
 			name: "[[1, 2], [3, 4]]",
-			in: xn.IterSlice(
-				xn.IterSlice(1, 2),
-				xn.IterSlice(3, 4),
+			in: xn.SliceIter(
+				xn.SliceIter(1, 2),
+				xn.SliceIter(3, 4),
 			),
 			want: []int{1, 2, 3, 4},
 		},
 
 		{
 			name: "[[1, 2], [3, 4], []]",
-			in: xn.IterSlice(
-				xn.IterSlice(1, 2),
-				xn.IterSlice(3, 4),
-				xn.IterSlice[int](),
+			in: xn.SliceIter(
+				xn.SliceIter(1, 2),
+				xn.SliceIter(3, 4),
+				xn.SliceIter[int](),
 			),
 			want: []int{1, 2, 3, 4},
 		},
 
 		{
 			name: "[[], [1, 2], [3, 4]]",
-			in: xn.IterSlice(
-				xn.IterSlice[int](),
-				xn.IterSlice(1, 2),
-				xn.IterSlice(3, 4),
+			in: xn.SliceIter(
+				xn.SliceIter[int](),
+				xn.SliceIter(1, 2),
+				xn.SliceIter(3, 4),
 			),
 			want: []int{1, 2, 3, 4},
 		},
 
 		{
 			name: "empty",
-			in:   xn.IterSlice[xn.Iter[int]](),
+			in:   xn.SliceIter[xn.Iter[int]](),
 			want: []int{},
 		},
 	}
@@ -352,8 +303,8 @@ func Test_JoinIter(t *testing.T) {
 		{
 			name: "[[1, 2], [3, 4]]",
 			in: []xn.Iter[int]{
-				xn.IterSlice(1, 2),
-				xn.IterSlice(3, 4),
+				xn.SliceIter(1, 2),
+				xn.SliceIter(3, 4),
 			},
 			want: []int{1, 2, 3, 4},
 		},
@@ -361,9 +312,9 @@ func Test_JoinIter(t *testing.T) {
 		{
 			name: "[[1, 2], [3, 4], []]",
 			in: []xn.Iter[int]{
-				xn.IterSlice(1, 2),
-				xn.IterSlice(3, 4),
-				xn.IterSlice[int](),
+				xn.SliceIter(1, 2),
+				xn.SliceIter(3, 4),
+				xn.SliceIter[int](),
 			},
 			want: []int{1, 2, 3, 4},
 		},
@@ -371,9 +322,9 @@ func Test_JoinIter(t *testing.T) {
 		{
 			name: "[[], [1, 2], [3, 4]]",
 			in: []xn.Iter[int]{
-				xn.IterSlice[int](),
-				xn.IterSlice(1, 2),
-				xn.IterSlice(3, 4),
+				xn.SliceIter[int](),
+				xn.SliceIter(1, 2),
+				xn.SliceIter(3, 4),
 			},
 			want: []int{1, 2, 3, 4},
 		},

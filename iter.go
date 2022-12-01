@@ -1,27 +1,7 @@
 package xn
 
-// Iter is a type that can be iterated over.
-type Iter[T any] interface {
-	iterable[T]
-
-	// For calls the given function for each value in the iterator.
-	For(func(T))
-
-	// ForIdx calls the given function for each value in the iterator, along with the index of the value.
-	ForIdx(func(int, T))
-
-	// Read reads up to n values from the iterator.
-	Read(int) []T
-
-	// Collect returns a slice containing all the values in the iterator.
-	Collect() []T
-
-	// Chan returns a channel that will receive all the values in the iterator.
-	Chan() <-chan T
-}
-
-// PeekIter is a peekable iterator.
-type PeekIter[T any] interface {
+// Peeker is a peekable iterator.
+type Peeker[T any] interface {
 	Iter[T]
 
 	// Peek returns the next value in the iterator without advancing it.
@@ -29,7 +9,7 @@ type PeekIter[T any] interface {
 }
 
 // WithPeek wraps the given iterator with a peekable iterator.
-func WithPeek[T any](iter Iter[T]) PeekIter[T] {
+func WithPeek[T any](iter Iter[T]) Peeker[T] {
 	return &peekIter[T]{Iter: iter}
 }
 
@@ -66,7 +46,7 @@ func (i *peekIter[T]) Next() (T, bool) {
 
 // MapIter applies the given function to each value returned by the given iterator.
 func MapIter[T, U any](iter Iter[T], fn func(T) U) Iter[U] {
-	return &iterBase[U]{iterable: &mapIter[T, U]{iter: iter, fn: fn}}
+	return NewIter[U](&mapIter[T, U]{iter: iter, fn: fn})
 }
 
 type mapIter[T, U any] struct {
@@ -85,7 +65,7 @@ func (i *mapIter[T, U]) Next() (U, bool) {
 
 // ChunkIter returns an iterator over the given iterator, chunking the values into slices of the given size.
 func ChunkIter[T any](iter Iter[T], size int) Iter[[]T] {
-	return &iterBase[[]T]{iterable: &chunkIter[T]{iter: iter, size: size}}
+	return NewIter[[]T](&chunkIter[T]{iter: iter, size: size})
 }
 
 type chunkIter[T any] struct {
@@ -110,7 +90,7 @@ func (i *chunkIter[T]) Next() ([]T, bool) {
 
 // FilterIter returns an iterator over the given iterator, filtering out values that do not match the given predicate.
 func FilterIter[T any](iter Iter[T], fn func(T) bool) Iter[T] {
-	return &iterBase[T]{iterable: &filterIter[T]{iter: iter, fn: fn}}
+	return NewIter[T](&filterIter[T]{iter: iter, fn: fn})
 }
 
 type filterIter[T any] struct {
@@ -134,7 +114,7 @@ func (i *filterIter[T]) Next() (T, bool) {
 // FlattenIter returns an iterator over the given iterator, flattening nested iterators.
 // That is, it converts an iterator over iterators into an iterator over the values of those iterators.
 func FlattenIter[T any](iter Iter[Iter[T]]) Iter[T] {
-	return &iterBase[T]{iterable: &flattenIter[T]{iter: iter}}
+	return NewIter[T](&flattenIter[T]{iter: iter})
 }
 
 type flattenIter[T any] struct {
@@ -164,5 +144,5 @@ func (i *flattenIter[T]) Next() (T, bool) {
 
 // JoinIter concatenates the given iterators into a single iterator.
 func JoinIter[T any](iters ...Iter[T]) Iter[T] {
-	return FlattenIter(IterSlice(iters...))
+	return FlattenIter(SliceIter(iters...))
 }
