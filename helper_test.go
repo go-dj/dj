@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_permute(t *testing.T) {
+func TestPermute(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int

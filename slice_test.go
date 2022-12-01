@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_Equal(t *testing.T) {
+func TestEqual(t *testing.T) {
 	tests := []struct {
 		name string
 		in   [][]int
@@ -62,7 +62,7 @@ func Test_Equal(t *testing.T) {
 	}
 }
 
-func Test_Join(t *testing.T) {
+func TestJoin(t *testing.T) {
 	tests := []struct {
 		name string
 		in   [][]int
@@ -93,7 +93,7 @@ func Test_Join(t *testing.T) {
 	}
 }
 
-func Test_Zip(t *testing.T) {
+func TestZip(t *testing.T) {
 	tests := []struct {
 		name string
 		in   [][]int
@@ -124,7 +124,7 @@ func Test_Zip(t *testing.T) {
 	}
 }
 
-func Test_Unzip(t *testing.T) {
+func TestUnzip(t *testing.T) {
 	tests := []struct {
 		name string
 		in   [][]int
@@ -155,7 +155,7 @@ func Test_Unzip(t *testing.T) {
 	}
 }
 
-func Test_Chunk(t *testing.T) {
+func TestChunk(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -225,7 +225,7 @@ func Test_Chunk(t *testing.T) {
 	}
 }
 
-func Test_Power(t *testing.T) {
+func TestPower(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -256,7 +256,7 @@ func Test_Power(t *testing.T) {
 	}
 }
 
-func Test_PowerIdx(t *testing.T) {
+func TestPowerIdx(t *testing.T) {
 	tests := []struct {
 		name string
 		in   int
@@ -287,7 +287,7 @@ func Test_PowerIdx(t *testing.T) {
 	}
 }
 
-func Test_Permutations(t *testing.T) {
+func TestPermutations(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -318,7 +318,7 @@ func Test_Permutations(t *testing.T) {
 	}
 }
 
-func Test_PermutationsIdx(t *testing.T) {
+func TestPermutationsIdx(t *testing.T) {
 	tests := []struct {
 		name string
 		in   int
@@ -349,13 +349,13 @@ func Test_PermutationsIdx(t *testing.T) {
 	}
 }
 
-func Test_Shuffle(t *testing.T) {
+func TestShuffle(t *testing.T) {
 	for _, slice := range xn.Permutations(xn.RangeN(6)) {
 		require.Equal(t, xn.Sort(xn.Shuffle(slice)), xn.Sort(slice))
 	}
 }
 
-func Test_Count(t *testing.T) {
+func TestCount(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -404,7 +404,7 @@ func Test_Count(t *testing.T) {
 	}
 }
 
-func Test_Min(t *testing.T) {
+func TestMin(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -435,7 +435,7 @@ func Test_Min(t *testing.T) {
 	}
 }
 
-func Test_Max(t *testing.T) {
+func TestMax(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -466,7 +466,7 @@ func Test_Max(t *testing.T) {
 	}
 }
 
-func Test_Uniq(t *testing.T) {
+func TestUniq(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -503,7 +503,7 @@ func Test_Uniq(t *testing.T) {
 	}
 }
 
-func Test_Intersect(t *testing.T) {
+func TestIntersect(t *testing.T) {
 	tests := []struct {
 		name string
 		a    []int
@@ -538,7 +538,7 @@ func Test_Intersect(t *testing.T) {
 	}
 }
 
-func Test_Difference(t *testing.T) {
+func TestDifference(t *testing.T) {
 	tests := []struct {
 		name string
 		a    []int
@@ -573,7 +573,7 @@ func Test_Difference(t *testing.T) {
 	}
 }
 
-func Test_Sort(t *testing.T) {
+func TestSort(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -616,7 +616,7 @@ func Test_Sort(t *testing.T) {
 	}
 }
 
-func Test_Reverse(t *testing.T) {
+func TestReverse(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -659,7 +659,7 @@ func Test_Reverse(t *testing.T) {
 	}
 }
 
-func Test_Set(t *testing.T) {
+func TestSet(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -714,7 +714,7 @@ func Test_Set(t *testing.T) {
 	}
 }
 
-func Test_Contains(t *testing.T) {
+func TestContains(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -763,7 +763,7 @@ func Test_Contains(t *testing.T) {
 	}
 }
 
-func Test_ContainsAll(t *testing.T) {
+func TestContainsAll(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -812,7 +812,7 @@ func Test_ContainsAll(t *testing.T) {
 	}
 }
 
-func Test_ContainsAny(t *testing.T) {
+func TestContainsAny(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -868,7 +868,7 @@ func Test_ContainsAny(t *testing.T) {
 	}
 }
 
-func Test_ContainsNone(t *testing.T) {
+func TestContainsNone(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -924,7 +924,7 @@ func Test_ContainsNone(t *testing.T) {
 	}
 }
 
-func Test_Index(t *testing.T) {
+func TestIndex(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -973,7 +973,7 @@ func Test_Index(t *testing.T) {
 	}
 }
 
-func Test_IndexAll(t *testing.T) {
+func TestIndexAll(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -1029,7 +1029,7 @@ func Test_IndexAll(t *testing.T) {
 	}
 }
 
-func Test_Insert(t *testing.T) {
+func TestInsert(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -1092,7 +1092,7 @@ func Test_Insert(t *testing.T) {
 	}
 }
 
-func Test_Remove(t *testing.T) {
+func TestRemove(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -1148,7 +1148,7 @@ func Test_Remove(t *testing.T) {
 	}
 }
 
-func Test_RemoveN(t *testing.T) {
+func TestRemoveN(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -1211,7 +1211,7 @@ func Test_RemoveN(t *testing.T) {
 	}
 }
 
-func Test_RemoveRange(t *testing.T) {
+func TestRemoveRange(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int
@@ -1274,7 +1274,7 @@ func Test_RemoveRange(t *testing.T) {
 	}
 }
 
-func Test_RemoveIdx(t *testing.T) {
+func TestRemoveIdx(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []int

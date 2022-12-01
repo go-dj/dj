@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_Iter_Collect(t *testing.T) {
+func TestIter_Collect(t *testing.T) {
 	tests := []struct {
 		name string
 		in   xn.Iter[int]
@@ -38,7 +38,7 @@ func Test_Iter_Collect(t *testing.T) {
 	}
 }
 
-func Test_Iter_Chan(t *testing.T) {
+func TestIter_Chan(t *testing.T) {
 	tests := []struct {
 		name string
 		in   xn.Iter[int]
@@ -69,7 +69,7 @@ func Test_Iter_Chan(t *testing.T) {
 	}
 }
 
-func Test_WithPeek(t *testing.T) {
+func TestWithPeek(t *testing.T) {
 	iter := xn.WithPeek(xn.SliceIter(1, 2, 3))
 
 	// Call read to get the first value.
@@ -127,7 +127,7 @@ func Test_WithPeek(t *testing.T) {
 	}
 }
 
-func Test_MapIter(t *testing.T) {
+func TestMapIter(t *testing.T) {
 	tests := []struct {
 		name string
 		in   xn.Iter[int]
@@ -162,7 +162,7 @@ func Test_MapIter(t *testing.T) {
 	}
 }
 
-func Test_ChunkIter(t *testing.T) {
+func TestChunkIter(t *testing.T) {
 	tests := []struct {
 		name string
 		in   xn.Iter[int]
@@ -211,7 +211,7 @@ func Test_ChunkIter(t *testing.T) {
 	}
 }
 
-func Test_FilterIter(t *testing.T) {
+func TestFilterIter(t *testing.T) {
 	tests := []struct {
 		name string
 		in   xn.Iter[int]
@@ -246,7 +246,7 @@ func Test_FilterIter(t *testing.T) {
 	}
 }
 
-func Test_FlattenIter(t *testing.T) {
+func TestFlattenIter(t *testing.T) {
 	tests := []struct {
 		name string
 		in   xn.Iter[xn.Iter[int]]
@@ -294,7 +294,7 @@ func Test_FlattenIter(t *testing.T) {
 	}
 }
 
-func Test_JoinIter(t *testing.T) {
+func TestJoinIter(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []xn.Iter[int]
@@ -342,7 +342,7 @@ func Test_JoinIter(t *testing.T) {
 	}
 }
 
-func Test_ZipIter(t *testing.T) {
+func TestZipIter(t *testing.T) {
 	tests := []struct {
 		name string
 		in   []xn.Iter[int]

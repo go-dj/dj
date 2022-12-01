@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_ForChan(t *testing.T) {
+func TestForChan(t *testing.T) {
 	var got []int
 
 	xn.ForChan(newCh(1, 2, 3), func(v int) {
@@ -17,11 +17,11 @@ func Test_ForChan(t *testing.T) {
 	require.Equal(t, []int{1, 2, 3}, got)
 }
 
-func Test_CollectChan(t *testing.T) {
+func TestCollectChan(t *testing.T) {
 	require.Equal(t, []int{1, 2, 3}, xn.CollectChan(newCh(1, 2, 3)))
 }
 
-func Test_ReadChan(t *testing.T) {
+func TestReadChan(t *testing.T) {
 	ch := newCh(1, 2, 3, 4, 5)
 
 	require.Equal(t, []int{1, 2}, xn.TakeChan(ch, 2))
@@ -29,7 +29,7 @@ func Test_ReadChan(t *testing.T) {
 	require.Equal(t, []int{5}, xn.TakeChan(ch, 2))
 }
 
-func Test_ForwarChan(t *testing.T) {
+func TestForwarChan(t *testing.T) {
 	// 3 senders of 3 ints each.
 	src := xn.MapN(3, func(i int) <-chan int {
 		return newCh(xn.Range(3*i, 3*(i+1))...)
@@ -50,28 +50,28 @@ func Test_ForwarChan(t *testing.T) {
 	require.ElementsMatch(t, xn.RangeN(9), xn.CollectChan(xn.MergeChan(xn.ToRecv(dst...)...)))
 }
 
-func Test_JoinChan(t *testing.T) {
+func TestJoinChan(t *testing.T) {
 	ch1 := newCh(1, 2, 3)
 	ch2 := newCh(4, 5, 6)
 
 	require.Equal(t, []int{1, 2, 3, 4, 5, 6}, xn.CollectChan(xn.JoinChan(ch1, ch2)))
 }
 
-func Test_ZipChan(t *testing.T) {
+func TestZipChan(t *testing.T) {
 	ch1 := newCh(1, 2, 3)
 	ch2 := newCh(4, 5, 6)
 
 	require.Equal(t, [][]int{{1, 4}, {2, 5}, {3, 6}}, xn.CollectChan(xn.ZipChan(ch1, ch2)))
 }
 
-func Test_MergeChan(t *testing.T) {
+func TestMergeChan(t *testing.T) {
 	ch1 := newCh(1, 2, 3)
 	ch2 := newCh(4, 5, 6)
 
 	require.ElementsMatch(t, []int{1, 2, 3, 4, 5, 6}, xn.CollectChan(xn.MergeChan(ch1, ch2)))
 }
 
-func Test_SplitChan(t *testing.T) {
+func TestSplitChan(t *testing.T) {
 	chs := xn.SplitChan(newCh(xn.RangeN(1000)...), 4)
 
 	xn.ForEachIdx(chs, func(idx int, ch <-chan int) {
