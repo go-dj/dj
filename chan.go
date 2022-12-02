@@ -24,12 +24,12 @@ func CollectChanCtx[T any](ctx context.Context, ch <-chan T) []T {
 
 // TakeChan reads up to n values from the channel.
 func TakeChan[T any](ch <-chan T, n int) []T {
-	return ReadChanCtx(context.Background(), ch, n)
+	return TakeChanCtx(context.Background(), ch, n)
 }
 
-// ReadChanCtx reads up to n values from the channel.
+// TakeChanCtx reads up to n values from the channel.
 // It stops reading when the context is canceled.
-func ReadChanCtx[T any](ctx context.Context, ch <-chan T, n int) []T {
+func TakeChanCtx[T any](ctx context.Context, ch <-chan T, n int) []T {
 	out := make([]T, 0, n)
 
 	for {
@@ -183,7 +183,7 @@ func ZipChanCtx[T any](ctx context.Context, chs ...<-chan T) <-chan []T {
 
 		in := ZipIter(MapEach(chs, func(ch <-chan T) Iter[T] {
 			return ChanIterCtx(ctx, ch)
-		})...).Chan()
+		})...).Recv()
 
 		ForwardChanCtx(ctx, []<-chan []T{in}, ToSend(out))
 	}()

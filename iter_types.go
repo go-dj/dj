@@ -2,31 +2,6 @@ package xn
 
 import "context"
 
-// Iter is a type that can be read sequentially.
-type Iter[T any] interface {
-	Iterable[T]
-
-	// For calls the given function for each value in the iterator.
-	For(func(T))
-
-	// ForIdx calls the given function for each value in the iterator, along with the index of the value.
-	ForIdx(func(int, T))
-
-	// Collect returns a slice containing all the values in the iterator.
-	Collect() []T
-
-	// Chan returns a channel that will receive all the values in the iterator.
-	Chan() <-chan T
-
-	// WriteTo writes all the values in the iterator to the given writable.
-	WriteTo(Writable[T]) (int, bool)
-}
-
-// NewIter returns a new Iter that reads from the given Iterable.
-func NewIter[T any](r Iterable[T]) Iter[T] {
-	return &iter[T]{Iterable: r}
-}
-
 // SliceIter returns an iterator over the given slice.
 func SliceIter[T any](slice ...T) Iter[T] {
 	return NewIter[T](&sliceIter[T]{slice: slice})

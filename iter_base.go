@@ -5,11 +5,6 @@ type Iterable[T any] interface {
 	Next() (T, bool)
 }
 
-// Writable is a type that can be written to by repeatedly calling Write.
-type Writable[T any] interface {
-	Write(T) bool
-}
-
 // iter is a base type for implementing Iter which wraps a readable.
 type iter[T any] struct {
 	Iterable[T]
@@ -32,6 +27,18 @@ func (i iter[T]) ForIdx(fn func(int, T)) {
 	}
 }
 
+func (i iter[T]) Take(n int) []T {
+	out := make([]T, 0, n)
+
+	for v, ok := i.Next(); ok; v, ok = i.Next() {
+		if out = append(out, v); len(out) == n {
+			break
+		}
+	}
+
+	return out
+}
+
 func (i iter[T]) Collect() []T {
 	out := make([]T, 0)
 
@@ -42,7 +49,7 @@ func (i iter[T]) Collect() []T {
 	return out
 }
 
-func (i iter[T]) Chan() <-chan T {
+func (i iter[T]) Recv() <-chan T {
 	ch := make(chan T)
 
 	go func() {
@@ -54,6 +61,12 @@ func (i iter[T]) Chan() <-chan T {
 	}()
 
 	return ch
+}
+
+func (i iter[T]) Send(ch chan<- T) {
+	for v, ok := i.Next(); ok; v, ok = i.Next() {
+		ch <- v
+	}
 }
 
 func (i iter[T]) WriteTo(w Writable[T]) (int, bool) {

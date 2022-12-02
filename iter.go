@@ -1,5 +1,36 @@
 package xn
 
+// Iter is a type that can be read sequentially.
+type Iter[T any] interface {
+	Iterable[T]
+
+	// For calls the given function for each value in the iterator.
+	For(func(T))
+
+	// ForIdx calls the given function for each value in the iterator, along with the index of the value.
+	ForIdx(func(int, T))
+
+	// Take reads up to n values from the iterator and returns them.
+	Take(int) []T
+
+	// Collect returns a slice containing all the values in the iterator.
+	Collect() []T
+
+	// Send sends all the values in the iterator to the given channel.
+	Send(ch chan<- T)
+
+	// Recv returns a channel that will receive all the values in the iterator.
+	Recv() <-chan T
+
+	// WriteTo writes all the values in the iterator to the given writable.
+	WriteTo(Writable[T]) (int, bool)
+}
+
+// NewIter returns a new Iter that reads from the given Iterable.
+func NewIter[T any](r Iterable[T]) Iter[T] {
+	return &iter[T]{Iterable: r}
+}
+
 // Peeker is a peekable iterator.
 type Peeker[T any] interface {
 	Iter[T]
