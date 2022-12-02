@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/jameshoulahan/dj"
+	"github.com/go-dj/dj"
 )
 
 func Benchmark_Power(b *testing.B) {

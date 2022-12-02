@@ -3,7 +3,7 @@ package dj_test
 import (
 	"fmt"
 
-	"github.com/jameshoulahan/dj"
+	"github.com/go-dj/dj"
 )
 
 func ExampleNewPipe() {

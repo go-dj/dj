@@ -3,7 +3,7 @@ package dj_test
 import (
 	"testing"
 
-	"github.com/jameshoulahan/dj"
+	"github.com/go-dj/dj"
 	"github.com/stretchr/testify/require"
 )
 
