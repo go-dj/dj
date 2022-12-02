@@ -76,3 +76,31 @@ func TestPipe_Forward(t *testing.T) {
 	// Read data from the second pipe's output channel.
 	require.Equal(t, []int{1, 2, 3}, dj.ChanIter(out2).Collect())
 }
+
+func TestPipe_Read_Block(t *testing.T) {
+	in, out := dj.NewPipe[int]()
+
+	go func() {
+		in <- 1
+		in <- 2
+		in <- 3
+	}()
+
+	require.Equal(t, 1, <-out)
+	require.Equal(t, 2, <-out)
+	require.Equal(t, 3, <-out)
+}
+
+func TestPipe_Write_Block(t *testing.T) {
+	in, out := dj.NewPipe[int]()
+
+	go func() {
+		require.Equal(t, 1, <-out)
+		require.Equal(t, 2, <-out)
+		require.Equal(t, 3, <-out)
+	}()
+
+	in <- 1
+	in <- 2
+	in <- 3
+}

@@ -8,13 +8,13 @@ import (
 )
 
 func TestRWBuffer_Iterable(t *testing.T) {
-	buf := dj.NewRWBuffer(1, 2, 3)
+	buf := dj.NewRWBuffer([]int{1, 2, 3})
 
 	require.Equal(t, []int{1, 2, 3}, dj.NewIter[int](buf).Collect())
 }
 
 func TestRWBuffer_Writable(t *testing.T) {
-	buf := dj.NewRWBuffer[int]()
+	buf := dj.NewRWBuffer[int](nil)
 
 	n, ok := dj.NewWriter[int](buf).WriteFrom(dj.SliceIter(1, 2, 3))
 	require.True(t, ok)
@@ -22,7 +22,7 @@ func TestRWBuffer_Writable(t *testing.T) {
 }
 
 func TestRWBuffer_RW(t *testing.T) {
-	buf := dj.NewRWBuffer[int]()
+	buf := dj.NewRWBuffer[int](nil)
 
 	// Create a reader and writer from the buffer.
 	r := dj.NewIter[int](buf)

@@ -5,24 +5,12 @@ import (
 	"sync/atomic"
 )
 
-type Pipe[T any] struct {
-	// items contains the items in the pipe.
-	items []T
-
-	// inCh and outCh are the channels for writing and reading from the pipe.
-	inCh, outCh chan T
-
-	// cond signals when items are added to the pipe.
-	cond *sync.Cond
-
-	// done holds whether the pipe is closed.
-	done atomic.Bool
-}
-
-// NewPipe returns a new buffered pipe.
+// NewPipe returns a pair of connected channels, one for sending and one for receiving.
+// Sent values are buffered until they are received.
+// The out channel is closed when the in channel is closed.
 func NewPipe[T any]() (chan<- T, <-chan T) {
-	p := &Pipe[T]{
-		items: make([]T, 0),
+	p := &pipe[T]{
+		buf:   make([]T, 0),
 		inCh:  make(chan T),
 		outCh: make(chan T),
 		cond:  sync.NewCond(&sync.Mutex{}),
@@ -45,8 +33,23 @@ func NewPipe[T any]() (chan<- T, <-chan T) {
 	return p.inCh, p.outCh
 }
 
+// pipe is a pair of unbouded channels.
+type pipe[T any] struct {
+	// buf contains the buffered values in the pipe.
+	buf []T
+
+	// inCh and outCh are the channels for writing and reading from the pipe.
+	inCh, outCh chan T
+
+	// cond signals when items are added to the pipe.
+	cond *sync.Cond
+
+	// done holds whether the pipe is closed.
+	done atomic.Bool
+}
+
 // in writes the next value from the in channel to the items.
-func (p *Pipe[T]) in() bool {
+func (p *pipe[T]) in() bool {
 	defer p.cond.Broadcast()
 
 	v, ok := <-p.inCh
@@ -56,14 +59,14 @@ func (p *Pipe[T]) in() bool {
 		p.cond.L.Lock()
 		defer p.cond.L.Unlock()
 
-		p.items = append(p.items, v)
+		p.buf = append(p.buf, v)
 	}
 
 	return ok
 }
 
 // out reads the next value from the items and sends it to the out channel.
-func (p *Pipe[T]) out() bool {
+func (p *pipe[T]) out() bool {
 	v, ok := p.pop()
 	if !ok {
 		return false
@@ -75,11 +78,11 @@ func (p *Pipe[T]) out() bool {
 }
 
 // pop removes the first item from the items and returns it.
-func (p *Pipe[T]) pop() (T, bool) {
+func (p *pipe[T]) pop() (T, bool) {
 	p.cond.L.Lock()
 	defer p.cond.L.Unlock()
 
-	for len(p.items) == 0 {
+	for len(p.buf) == 0 {
 		if p.done.Load() {
 			return Zero[T](), false
 		}
@@ -89,7 +92,7 @@ func (p *Pipe[T]) pop() (T, bool) {
 
 	var v T
 
-	v, p.items = p.items[0], p.items[1:]
+	v, p.buf = p.buf[0], p.buf[1:]
 
 	return v, true
 }

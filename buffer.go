@@ -5,7 +5,7 @@ type RWBuffer[T any] struct {
 }
 
 // NewRWBuffer returns a new RWBuffer.
-func NewRWBuffer[T any](items ...T) *RWBuffer[T] {
+func NewRWBuffer[T any](items []T) *RWBuffer[T] {
 	return &RWBuffer[T]{items: items}
 }
 
