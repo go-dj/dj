@@ -118,7 +118,7 @@ func ForwardChan[T any](src []<-chan T, dst []chan<- T) {
 // It stops forwarding when the context is canceled.
 func ForwardChanCtx[T any](ctx context.Context, src []<-chan T, dst []chan<- T) {
 	ForChanCtx(ctx, MergeChanCtx(ctx, src...), func(ctx context.Context, v T) {
-		SendChanCtx(ctx, v, dst...)
+		SendCtx(ctx, v, dst...)
 	})
 }
 
@@ -193,13 +193,13 @@ func ZipChanCtx[T any](ctx context.Context, chs ...<-chan T) <-chan []T {
 
 // Send sends the given value to one of the given channels.
 // It blocks until the value is sent.
-func SendChan[T any](v T, chs ...chan<- T) {
-	SendChanCtx(context.Background(), v, chs...)
+func Send[T any](v T, chs ...chan<- T) {
+	SendCtx(context.Background(), v, chs...)
 }
 
 // SendCtx sends the given value to one of the given channels.
 // It blocks until the value is sent or the context is canceled.
-func SendChanCtx[T any](ctx context.Context, v T, chs ...chan<- T) {
+func SendCtx[T any](ctx context.Context, v T, chs ...chan<- T) {
 	reflect.Select(append(
 		MapEach(chs, func(ch chan<- T) reflect.SelectCase {
 			return reflect.SelectCase{
@@ -218,7 +218,7 @@ func SendChanCtx[T any](ctx context.Context, v T, chs ...chan<- T) {
 // Recv receives a value from one of the given channels.
 // It blocks until a value is received, which it returns.
 // The boolean indicates whether the read was successful; it is false if the channel is closed.
-func RecvChan[T any](chs ...<-chan T) (T, bool) {
+func Recv[T any](chs ...<-chan T) (T, bool) {
 	_, v, ok := reflect.Select(MapEach(chs, func(ch <-chan T) reflect.SelectCase {
 		return reflect.SelectCase{
 			Dir:  reflect.SelectRecv,
@@ -229,10 +229,10 @@ func RecvChan[T any](chs ...<-chan T) (T, bool) {
 	return v.Interface().(T), ok
 }
 
-// RecvChanCtx receives a value from one of the given channels.
+// RecvCtx receives a value from one of the given channels.
 // It blocks until a value is received, which it returns, or the context is canceled.
 // The boolean indicates whether the read was successful; it is false if the channel is closed.
-func RecvChanCtx[T any](ctx context.Context, chs ...<-chan T) (T, bool) {
+func RecvCtx[T any](ctx context.Context, chs ...<-chan T) (T, bool) {
 	_, v, ok := reflect.Select(append(
 		MapEach(chs, func(ch <-chan T) reflect.SelectCase {
 			return reflect.SelectCase{
