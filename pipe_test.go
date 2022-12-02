@@ -104,3 +104,33 @@ func TestPipe_Write_Block(t *testing.T) {
 	in <- 2
 	in <- 3
 }
+
+func TestBufPipe_ReadWrite_Block(t *testing.T) {
+	in, out := dj.NewBufPipe[int](3)
+
+	in <- 1
+	in <- 2
+	in <- 3
+
+	// The buffer is full, so the write blocks.
+	select {
+	case in <- 4:
+		t.Fatal("write should block")
+
+	default:
+		// ...
+	}
+
+	require.Equal(t, 1, <-out)
+	require.Equal(t, 2, <-out)
+	require.Equal(t, 3, <-out)
+
+	// The buffer is empty, so the read blocks.
+	select {
+	case <-out:
+		t.Fatal("read should block")
+
+	default:
+		// ...
+	}
+}

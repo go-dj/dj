@@ -5,12 +5,19 @@ import (
 	"sync/atomic"
 )
 
+// NewBufPipe returns a pair of connected channels, one for sending and one for receiving.
+// Writes to the in channel block when the buffer is full.
+// The out channel is closed when the in channel is closed.
+func NewBufPipe[T any](size int) (chan<- T, <-chan T) {
+	ch := make(chan T, size)
+	return ch, ch
+}
+
 // NewPipe returns a pair of connected channels, one for sending and one for receiving.
 // Sent values are buffered until they are received.
 // The out channel is closed when the in channel is closed.
 func NewPipe[T any]() (chan<- T, <-chan T) {
 	p := &pipe[T]{
-		buf:   make([]T, 0),
 		inCh:  make(chan T),
 		outCh: make(chan T),
 		cond:  sync.NewCond(&sync.Mutex{}),
