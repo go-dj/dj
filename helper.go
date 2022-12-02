@@ -1,4 +1,4 @@
-package xn
+package dj
 
 // zero returns the zero value of the given type.
 func zero[T any]() T {

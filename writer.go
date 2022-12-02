@@ -1,4 +1,4 @@
-package xn
+package dj
 
 // Writer is a type that can be written to by repeatedly calling Write.
 type Writer[T any] interface {

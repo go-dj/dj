@@ -1,4 +1,4 @@
-module github.com/jameshoulahan/xn
+module github.com/jameshoulahan/dj
 
 go 1.19
 

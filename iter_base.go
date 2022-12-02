@@ -1,4 +1,4 @@
-package xn
+package dj
 
 // Iterable is a type that can be iterated over by repeatedly calling Next.
 type Iterable[T any] interface {

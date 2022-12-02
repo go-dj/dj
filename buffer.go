@@ -1,4 +1,4 @@
-package xn
+package dj
 
 type RWBuffer[T any] struct {
 	items []T

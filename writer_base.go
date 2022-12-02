@@ -1,4 +1,4 @@
-package xn
+package dj
 
 // Writable is a type that can be written to by repeatedly calling Write.
 type Writable[T any] interface {

@@ -1,9 +1,9 @@
-package xn_test
+package dj_test
 
 import (
 	"testing"
 
-	"github.com/jameshoulahan/xn"
+	"github.com/jameshoulahan/dj"
 	"github.com/stretchr/testify/require"
 )
 
@@ -57,7 +57,7 @@ func TestEqual(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Equal(tt.in...))
+			require.Equal(t, tt.want, dj.Equal(tt.in...))
 		})
 	}
 }
@@ -88,7 +88,7 @@ func TestJoin(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Join(tt.in...))
+			require.Equal(t, tt.want, dj.Join(tt.in...))
 		})
 	}
 }
@@ -119,7 +119,7 @@ func TestZip(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Zip(tt.in...))
+			require.Equal(t, tt.want, dj.Zip(tt.in...))
 		})
 	}
 }
@@ -150,7 +150,7 @@ func TestUnzip(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Unzip(tt.in))
+			require.Equal(t, tt.want, dj.Unzip(tt.in))
 		})
 	}
 }
@@ -220,7 +220,7 @@ func TestChunk(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Chunk(tt.in, tt.size))
+			require.Equal(t, tt.want, dj.Chunk(tt.in, tt.size))
 		})
 	}
 }
@@ -251,7 +251,7 @@ func TestPower(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Power(tt.in))
+			require.Equal(t, tt.want, dj.Power(tt.in))
 		})
 	}
 }
@@ -282,7 +282,7 @@ func TestPowerIdx(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.PowerIdx(tt.in))
+			require.Equal(t, tt.want, dj.PowerIdx(tt.in))
 		})
 	}
 }
@@ -313,7 +313,7 @@ func TestPermutations(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.ElementsMatch(t, tt.want, xn.Permutations(tt.in))
+			require.ElementsMatch(t, tt.want, dj.Permutations(tt.in))
 		})
 	}
 }
@@ -344,14 +344,14 @@ func TestPermutationsIdx(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.ElementsMatch(t, tt.want, xn.PermutationsIdx(tt.in))
+			require.ElementsMatch(t, tt.want, dj.PermutationsIdx(tt.in))
 		})
 	}
 }
 
 func TestShuffle(t *testing.T) {
-	for _, slice := range xn.Permutations(xn.RangeN(6)) {
-		require.Equal(t, xn.Sort(xn.Shuffle(slice)), xn.Sort(slice))
+	for _, slice := range dj.Permutations(dj.RangeN(6)) {
+		require.Equal(t, dj.Sort(dj.Shuffle(slice)), dj.Sort(slice))
 	}
 }
 
@@ -399,7 +399,7 @@ func TestCount(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Count(tt.in, tt.val))
+			require.Equal(t, tt.want, dj.Count(tt.in, tt.val))
 		})
 	}
 }
@@ -430,7 +430,7 @@ func TestMin(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Min(tt.in))
+			require.Equal(t, tt.want, dj.Min(tt.in))
 		})
 	}
 }
@@ -461,7 +461,7 @@ func TestMax(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Max(tt.in))
+			require.Equal(t, tt.want, dj.Max(tt.in))
 		})
 	}
 }
@@ -498,7 +498,7 @@ func TestUniq(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Uniq(tt.in))
+			require.Equal(t, tt.want, dj.Uniq(tt.in))
 		})
 	}
 }
@@ -533,7 +533,7 @@ func TestIntersect(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Intersect(tt.a, tt.b))
+			require.Equal(t, tt.want, dj.Intersect(tt.a, tt.b))
 		})
 	}
 }
@@ -568,7 +568,7 @@ func TestDifference(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Difference(tt.a, tt.b))
+			require.Equal(t, tt.want, dj.Difference(tt.a, tt.b))
 		})
 	}
 }
@@ -611,7 +611,7 @@ func TestSort(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Sort(tt.in))
+			require.Equal(t, tt.want, dj.Sort(tt.in))
 		})
 	}
 }
@@ -654,7 +654,7 @@ func TestReverse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Reverse(tt.in))
+			require.Equal(t, tt.want, dj.Reverse(tt.in))
 		})
 	}
 }
@@ -709,7 +709,7 @@ func TestSet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Set(tt.in))
+			require.Equal(t, tt.want, dj.Set(tt.in))
 		})
 	}
 }
@@ -758,7 +758,7 @@ func TestContains(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Contains(tt.in, tt.val))
+			require.Equal(t, tt.want, dj.Contains(tt.in, tt.val))
 		})
 	}
 }
@@ -807,7 +807,7 @@ func TestContainsAll(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.ContainsAll(tt.in, tt.vals...))
+			require.Equal(t, tt.want, dj.ContainsAll(tt.in, tt.vals...))
 		})
 	}
 }
@@ -863,7 +863,7 @@ func TestContainsAny(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.ContainsAny(tt.in, tt.vals...))
+			require.Equal(t, tt.want, dj.ContainsAny(tt.in, tt.vals...))
 		})
 	}
 }
@@ -919,7 +919,7 @@ func TestContainsNone(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.ContainsNone(tt.in, tt.vals...))
+			require.Equal(t, tt.want, dj.ContainsNone(tt.in, tt.vals...))
 		})
 	}
 }
@@ -968,7 +968,7 @@ func TestIndex(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Index(tt.in, tt.val))
+			require.Equal(t, tt.want, dj.Index(tt.in, tt.val))
 		})
 	}
 }
@@ -1024,7 +1024,7 @@ func TestIndexAll(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.IndexAll(tt.in, tt.val))
+			require.Equal(t, tt.want, dj.IndexAll(tt.in, tt.val))
 		})
 	}
 }
@@ -1087,7 +1087,7 @@ func TestInsert(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Insert(tt.in, tt.idx, tt.vals...))
+			require.Equal(t, tt.want, dj.Insert(tt.in, tt.idx, tt.vals...))
 		})
 	}
 }
@@ -1143,7 +1143,7 @@ func TestRemove(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.Remove(tt.in, tt.vals...))
+			require.Equal(t, tt.want, dj.Remove(tt.in, tt.vals...))
 		})
 	}
 }
@@ -1206,7 +1206,7 @@ func TestRemoveN(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.RemoveN(tt.in, tt.idx, tt.n))
+			require.Equal(t, tt.want, dj.RemoveN(tt.in, tt.idx, tt.n))
 		})
 	}
 }
@@ -1269,7 +1269,7 @@ func TestRemoveRange(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.RemoveRange(tt.in, tt.from, tt.to))
+			require.Equal(t, tt.want, dj.RemoveRange(tt.in, tt.from, tt.to))
 		})
 	}
 }
@@ -1318,7 +1318,7 @@ func TestRemoveIdx(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.RemoveIdx(tt.in, tt.idxs...))
+			require.Equal(t, tt.want, dj.RemoveIdx(tt.in, tt.idxs...))
 		})
 	}
 }

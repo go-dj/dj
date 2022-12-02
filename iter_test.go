@@ -1,33 +1,33 @@
-package xn_test
+package dj_test
 
 import (
 	"testing"
 
-	"github.com/jameshoulahan/xn"
+	"github.com/jameshoulahan/dj"
 	"github.com/stretchr/testify/require"
 )
 
 func TestIter_Collect(t *testing.T) {
 	tests := []struct {
 		name string
-		in   xn.Iter[int]
+		in   dj.Iter[int]
 		want []int
 	}{
 		{
 			name: "single",
-			in:   xn.SliceIter(1),
+			in:   dj.SliceIter(1),
 			want: []int{1},
 		},
 
 		{
 			name: "double",
-			in:   xn.SliceIter(1, 2),
+			in:   dj.SliceIter(1, 2),
 			want: []int{1, 2},
 		},
 
 		{
 			name: "empty",
-			in:   xn.SliceIter[int](),
+			in:   dj.SliceIter[int](),
 			want: []int{},
 		},
 	}
@@ -41,36 +41,36 @@ func TestIter_Collect(t *testing.T) {
 func TestIter_Chan(t *testing.T) {
 	tests := []struct {
 		name string
-		in   xn.Iter[int]
+		in   dj.Iter[int]
 		want []int
 	}{
 		{
 			name: "single",
-			in:   xn.SliceIter(1),
+			in:   dj.SliceIter(1),
 			want: []int{1},
 		},
 
 		{
 			name: "double",
-			in:   xn.SliceIter(1, 2),
+			in:   dj.SliceIter(1, 2),
 			want: []int{1, 2},
 		},
 
 		{
 			name: "empty",
-			in:   xn.SliceIter[int](),
+			in:   dj.SliceIter[int](),
 			want: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.CollectChan(tt.in.Recv()))
+			require.Equal(t, tt.want, dj.CollectChan(tt.in.Recv()))
 		})
 	}
 }
 
 func TestWithPeek(t *testing.T) {
-	iter := xn.WithPeek(xn.SliceIter(1, 2, 3))
+	iter := dj.WithPeek(dj.SliceIter(1, 2, 3))
 
 	// Call read to get the first value.
 	{
@@ -130,34 +130,34 @@ func TestWithPeek(t *testing.T) {
 func TestMapIter(t *testing.T) {
 	tests := []struct {
 		name string
-		in   xn.Iter[int]
+		in   dj.Iter[int]
 		fn   func(int) int
 		want []int
 	}{
 		{
 			name: "add 1",
-			in:   xn.SliceIter(1, 2, 3),
+			in:   dj.SliceIter(1, 2, 3),
 			fn:   func(i int) int { return i + 1 },
 			want: []int{2, 3, 4},
 		},
 
 		{
 			name: "double",
-			in:   xn.SliceIter(1, 2, 3),
+			in:   dj.SliceIter(1, 2, 3),
 			fn:   func(i int) int { return i * 2 },
 			want: []int{2, 4, 6},
 		},
 
 		{
 			name: "empty",
-			in:   xn.SliceIter[int](),
+			in:   dj.SliceIter[int](),
 			fn:   func(i int) int { return i + 1 },
 			want: []int{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.MapIter(tt.in, tt.fn).Collect())
+			require.Equal(t, tt.want, dj.MapIter(tt.in, tt.fn).Collect())
 		})
 	}
 }
@@ -165,48 +165,48 @@ func TestMapIter(t *testing.T) {
 func TestChunkIter(t *testing.T) {
 	tests := []struct {
 		name string
-		in   xn.Iter[int]
+		in   dj.Iter[int]
 		size int
 		want [][]int
 	}{
 		{
 			name: "[1, 2, 3] size 1",
-			in:   xn.SliceIter(1, 2, 3),
+			in:   dj.SliceIter(1, 2, 3),
 			size: 1,
 			want: [][]int{{1}, {2}, {3}},
 		},
 
 		{
 			name: "[1, 2, 3] size 2",
-			in:   xn.SliceIter(1, 2, 3),
+			in:   dj.SliceIter(1, 2, 3),
 			size: 2,
 			want: [][]int{{1, 2}, {3}},
 		},
 
 		{
 			name: "[1, 2, 3] size 3",
-			in:   xn.SliceIter(1, 2, 3),
+			in:   dj.SliceIter(1, 2, 3),
 			size: 3,
 			want: [][]int{{1, 2, 3}},
 		},
 
 		{
 			name: "[1, 2, 3] size 4",
-			in:   xn.SliceIter(1, 2, 3),
+			in:   dj.SliceIter(1, 2, 3),
 			size: 4,
 			want: [][]int{{1, 2, 3}},
 		},
 
 		{
 			name: "empty",
-			in:   xn.SliceIter[int](),
+			in:   dj.SliceIter[int](),
 			size: 1,
 			want: [][]int{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.ChunkIter(tt.in, tt.size).Collect())
+			require.Equal(t, tt.want, dj.ChunkIter(tt.in, tt.size).Collect())
 		})
 	}
 }
@@ -214,34 +214,34 @@ func TestChunkIter(t *testing.T) {
 func TestFilterIter(t *testing.T) {
 	tests := []struct {
 		name string
-		in   xn.Iter[int]
+		in   dj.Iter[int]
 		fn   func(int) bool
 		want []int
 	}{
 		{
 			name: "odd",
-			in:   xn.SliceIter(1, 2, 3),
+			in:   dj.SliceIter(1, 2, 3),
 			fn:   func(i int) bool { return i%2 == 1 },
 			want: []int{1, 3},
 		},
 
 		{
 			name: "even",
-			in:   xn.SliceIter(1, 2, 3),
+			in:   dj.SliceIter(1, 2, 3),
 			fn:   func(i int) bool { return i%2 == 0 },
 			want: []int{2},
 		},
 
 		{
 			name: "empty",
-			in:   xn.SliceIter[int](),
+			in:   dj.SliceIter[int](),
 			fn:   func(i int) bool { return i%2 == 0 },
 			want: []int{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.FilterIter(tt.in, tt.fn).Collect())
+			require.Equal(t, tt.want, dj.FilterIter(tt.in, tt.fn).Collect())
 		})
 	}
 }
@@ -249,47 +249,47 @@ func TestFilterIter(t *testing.T) {
 func TestFlattenIter(t *testing.T) {
 	tests := []struct {
 		name string
-		in   xn.Iter[xn.Iter[int]]
+		in   dj.Iter[dj.Iter[int]]
 		want []int
 	}{
 		{
 			name: "[[1, 2], [3, 4]]",
-			in: xn.SliceIter(
-				xn.SliceIter(1, 2),
-				xn.SliceIter(3, 4),
+			in: dj.SliceIter(
+				dj.SliceIter(1, 2),
+				dj.SliceIter(3, 4),
 			),
 			want: []int{1, 2, 3, 4},
 		},
 
 		{
 			name: "[[1, 2], [3, 4], []]",
-			in: xn.SliceIter(
-				xn.SliceIter(1, 2),
-				xn.SliceIter(3, 4),
-				xn.SliceIter[int](),
+			in: dj.SliceIter(
+				dj.SliceIter(1, 2),
+				dj.SliceIter(3, 4),
+				dj.SliceIter[int](),
 			),
 			want: []int{1, 2, 3, 4},
 		},
 
 		{
 			name: "[[], [1, 2], [3, 4]]",
-			in: xn.SliceIter(
-				xn.SliceIter[int](),
-				xn.SliceIter(1, 2),
-				xn.SliceIter(3, 4),
+			in: dj.SliceIter(
+				dj.SliceIter[int](),
+				dj.SliceIter(1, 2),
+				dj.SliceIter(3, 4),
 			),
 			want: []int{1, 2, 3, 4},
 		},
 
 		{
 			name: "empty",
-			in:   xn.SliceIter[xn.Iter[int]](),
+			in:   dj.SliceIter[dj.Iter[int]](),
 			want: []int{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.FlattenIter(tt.in).Collect())
+			require.Equal(t, tt.want, dj.FlattenIter(tt.in).Collect())
 		})
 	}
 }
@@ -297,47 +297,47 @@ func TestFlattenIter(t *testing.T) {
 func TestJoinIter(t *testing.T) {
 	tests := []struct {
 		name string
-		in   []xn.Iter[int]
+		in   []dj.Iter[int]
 		want []int
 	}{
 		{
 			name: "[[1, 2], [3, 4]]",
-			in: []xn.Iter[int]{
-				xn.SliceIter(1, 2),
-				xn.SliceIter(3, 4),
+			in: []dj.Iter[int]{
+				dj.SliceIter(1, 2),
+				dj.SliceIter(3, 4),
 			},
 			want: []int{1, 2, 3, 4},
 		},
 
 		{
 			name: "[[1, 2], [3, 4], []]",
-			in: []xn.Iter[int]{
-				xn.SliceIter(1, 2),
-				xn.SliceIter(3, 4),
-				xn.SliceIter[int](),
+			in: []dj.Iter[int]{
+				dj.SliceIter(1, 2),
+				dj.SliceIter(3, 4),
+				dj.SliceIter[int](),
 			},
 			want: []int{1, 2, 3, 4},
 		},
 
 		{
 			name: "[[], [1, 2], [3, 4]]",
-			in: []xn.Iter[int]{
-				xn.SliceIter[int](),
-				xn.SliceIter(1, 2),
-				xn.SliceIter(3, 4),
+			in: []dj.Iter[int]{
+				dj.SliceIter[int](),
+				dj.SliceIter(1, 2),
+				dj.SliceIter(3, 4),
 			},
 			want: []int{1, 2, 3, 4},
 		},
 
 		{
 			name: "empty",
-			in:   []xn.Iter[int]{},
+			in:   []dj.Iter[int]{},
 			want: []int{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.JoinIter(tt.in...).Collect())
+			require.Equal(t, tt.want, dj.JoinIter(tt.in...).Collect())
 		})
 	}
 }
@@ -345,46 +345,46 @@ func TestJoinIter(t *testing.T) {
 func TestZipIter(t *testing.T) {
 	tests := []struct {
 		name string
-		in   []xn.Iter[int]
+		in   []dj.Iter[int]
 		want [][]int
 	}{
 		{
 			name: "[[1, 2], [3, 4]]",
-			in: []xn.Iter[int]{
-				xn.SliceIter(1, 2),
-				xn.SliceIter(3, 4),
+			in: []dj.Iter[int]{
+				dj.SliceIter(1, 2),
+				dj.SliceIter(3, 4),
 			},
 			want: [][]int{{1, 3}, {2, 4}},
 		},
 
 		{
 			name: "[[1, 2], [3, 4], [5, 6]]",
-			in: []xn.Iter[int]{
-				xn.SliceIter(1, 2),
-				xn.SliceIter(3, 4),
-				xn.SliceIter(5, 6),
+			in: []dj.Iter[int]{
+				dj.SliceIter(1, 2),
+				dj.SliceIter(3, 4),
+				dj.SliceIter(5, 6),
 			},
 			want: [][]int{{1, 3, 5}, {2, 4, 6}},
 		},
 
 		{
 			name: "[[1, 2], [3]]",
-			in: []xn.Iter[int]{
-				xn.SliceIter(1, 2),
-				xn.SliceIter(3),
+			in: []dj.Iter[int]{
+				dj.SliceIter(1, 2),
+				dj.SliceIter(3),
 			},
 			want: [][]int{{1, 3}},
 		},
 
 		{
 			name: "empty",
-			in:   []xn.Iter[int]{},
+			in:   []dj.Iter[int]{},
 			want: [][]int{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, xn.ZipIter(tt.in...).Collect())
+			require.Equal(t, tt.want, dj.ZipIter(tt.in...).Collect())
 		})
 	}
 }

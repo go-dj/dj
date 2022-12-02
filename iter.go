@@ -1,4 +1,4 @@
-package xn
+package dj
 
 // Iter is a type that can be read sequentially.
 type Iter[T any] interface {
