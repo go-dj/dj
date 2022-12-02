@@ -19,7 +19,7 @@ func (b *RWBuffer[T]) Write(v T) bool {
 // Next returns the next value from the buffer.
 func (b *RWBuffer[T]) Next() (T, bool) {
 	if len(b.items) == 0 {
-		return zero[T](), false
+		return Zero[T](), false
 	}
 
 	v := b.items[0]

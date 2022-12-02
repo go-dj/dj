@@ -14,7 +14,7 @@ type sliceIter[T any] struct {
 
 func (i *sliceIter[T]) Next() (T, bool) {
 	if i.index >= len(i.slice) {
-		return zero[T](), false
+		return Zero[T](), false
 	}
 
 	v := i.slice[i.index]
@@ -42,7 +42,7 @@ type chanIter[T any] struct {
 func (i *chanIter[T]) Next() (T, bool) {
 	select {
 	case <-i.ctx.Done():
-		return zero[T](), false
+		return Zero[T](), false
 
 	case v, ok := <-i.ch:
 		return v, ok

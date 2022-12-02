@@ -7,8 +7,7 @@ import (
 
 type Pipe[T any] struct {
 	// items contains the items in the pipe.
-	items     []T
-	itemsLock sync.Mutex
+	items []T
 
 	// inCh and outCh are the channels for writing and reading from the pipe.
 	inCh, outCh chan T
@@ -54,8 +53,8 @@ func (p *Pipe[T]) in() bool {
 	if !ok {
 		p.done.Store(true)
 	} else {
-		p.itemsLock.Lock()
-		defer p.itemsLock.Unlock()
+		p.cond.L.Lock()
+		defer p.cond.L.Unlock()
 
 		p.items = append(p.items, v)
 	}
@@ -65,27 +64,32 @@ func (p *Pipe[T]) in() bool {
 
 // out reads the next value from the items and sends it to the out channel.
 func (p *Pipe[T]) out() bool {
+	v, ok := p.pop()
+	if !ok {
+		return false
+	}
+
+	p.outCh <- v
+
+	return true
+}
+
+// pop removes the first item from the items and returns it.
+func (p *Pipe[T]) pop() (T, bool) {
 	p.cond.L.Lock()
 	defer p.cond.L.Unlock()
 
 	for len(p.items) == 0 {
 		if p.done.Load() {
-			return false
+			return Zero[T](), false
 		}
 
 		p.cond.Wait()
 	}
 
-	p.outCh <- func() T {
-		p.itemsLock.Lock()
-		defer p.itemsLock.Unlock()
+	var v T
 
-		v := p.items[0]
+	v, p.items = p.items[0], p.items[1:]
 
-		p.items = p.items[1:]
-
-		return v
-	}()
-
-	return true
+	return v, true
 }

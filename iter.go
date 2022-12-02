@@ -55,7 +55,7 @@ func (i *peekIter[T]) Peek() (T, bool) {
 	if !i.has {
 		v, ok := i.Next()
 		if !ok {
-			return zero[T](), false
+			return Zero[T](), false
 		}
 
 		i.next = v
@@ -88,7 +88,7 @@ type mapIter[T, U any] struct {
 func (i *mapIter[T, U]) Next() (U, bool) {
 	v, ok := i.iter.Next()
 	if !ok {
-		return zero[U](), false
+		return Zero[U](), false
 	}
 
 	return i.fn(v), true
@@ -133,7 +133,7 @@ func (i *filterIter[T]) Next() (T, bool) {
 	for {
 		v, ok := i.iter.Next()
 		if !ok {
-			return zero[T](), false
+			return Zero[T](), false
 		}
 
 		if i.fn(v) {
@@ -158,7 +158,7 @@ func (i *flattenIter[T]) Next() (T, bool) {
 		if i.curr == nil {
 			next, ok := i.iter.Next()
 			if !ok {
-				return zero[T](), false
+				return Zero[T](), false
 			}
 
 			i.curr = next

@@ -370,7 +370,7 @@ func MaxIdxFn[T any](in []T, fn func(T, T) bool) int {
 
 // Sum returns the sum of the given slice.
 func Sum[T constraints.Ordered](in []T) T {
-	return Reduce(in, zero[T](), func(a, b T) T {
+	return Reduce(in, Zero[T](), func(a, b T) T {
 		return a + b
 	})
 }
@@ -511,12 +511,12 @@ func PowerIdx(n int) [][]int {
 
 // Permutations returns a slice of all the possible permutations of the given slice.
 func Permutations[T any](in []T) [][]T {
-	return permute(in, factorial(len(in)), 0)
+	return permute(in, Factorial(len(in)), 0)
 }
 
 // PermutationsIdx returns a slice containing the indices of all the possible permutations of a slice of the given length.
 func PermutationsIdx(n int) [][]int {
-	return permute(RangeN(n), factorial(n), 0)
+	return permute(RangeN(n), Factorial(n), 0)
 }
 
 // Shuffle returns a shuffled slice of the given slice.
@@ -687,6 +687,15 @@ func RemoveIdx[T any](in []T, indices ...int) []T {
 			out = append(out, v)
 		}
 	})
+
+	return out
+}
+
+// Clone returns a copy of the given slice.
+func Clone[T any](v []T) []T {
+	out := make([]T, len(v))
+
+	copy(out, v)
 
 	return out
 }
