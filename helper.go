@@ -6,6 +6,11 @@ func Zero[T any]() T {
 	return zero
 }
 
+// Pointer returns a pointer to the given value.
+func Pointer[T any](v T) *T {
+	return &v
+}
+
 // Factorial returns the Factorial of the given number.
 func Factorial(n int) int {
 	if n < 2 {

@@ -87,15 +87,15 @@ func MergeChan[T any](chs ...<-chan T) <-chan T {
 // That is, values are read from each channel in parallel.
 // The returned channel is closed when all the given channels are closed or the context is canceled.
 func MergeChanCtx[T any](ctx context.Context, chs ...<-chan T) <-chan T {
-	sem := NewSem(ctx, len(chs))
+	grp := NewGroup(ctx, NewSem(len(chs)))
 	out := make(chan T)
 
 	go func() {
 		defer close(out)
-		defer sem.Wait()
+		defer grp.Wait()
 
 		ForEach(chs, func(ch <-chan T) {
-			sem.Go(func(ctx context.Context) {
+			grp.Go(func(ctx context.Context) {
 				ForChanCtx(ctx, ch, func(ctx context.Context, v T) {
 					select {
 					case <-ctx.Done():

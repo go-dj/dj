@@ -21,13 +21,11 @@ func ForN(n int, fn func(int)) {
 
 // GoForN calls the given function with n unique values in parallel.
 func GoForN(ctx context.Context, n int, fn func(int)) {
-	sem := NewSem(ctx, MaxParallel)
-	defer sem.Wait()
+	grp := NewGroup(ctx, NewSem(MaxParallel))
+	defer grp.Wait()
 
-	ForN(n, func(idx int) {
-		sem.Go(func(context.Context) {
-			fn(idx)
-		})
+	grp.GoN(n, func(_ context.Context, idx int) {
+		fn(idx)
 	})
 }
 
