@@ -32,3 +32,41 @@ func ExampleNewPipe() {
 	// 2
 	// 3
 }
+
+func ExampleNewBufPipe() {
+	// Create a new pipe for ints with a buffer of size 3.
+	in, out := dj.NewBufPipe[int](3)
+
+	// Write some values to the pipe.
+	in <- 1
+	in <- 2
+	in <- 3
+
+	// The buffer is full, so the write blocks.
+	select {
+	case in <- 4:
+		panic("write should block")
+
+	default:
+		// ...
+	}
+
+	// Read the values from the pipe.
+	fmt.Println(<-out) // 1
+	fmt.Println(<-out) // 2
+	fmt.Println(<-out) // 3
+
+	// The buffer is empty, so the read blocks.
+	select {
+	case <-out:
+		panic("read should block")
+
+	default:
+		// ...
+	}
+
+	// Output:
+	// 1
+	// 2
+	// 3
+}
