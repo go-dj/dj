@@ -23,12 +23,17 @@ func NewPipe[T any]() (chan<- T, <-chan T) {
 		cond:  sync.NewCond(&sync.Mutex{}),
 	}
 
+	// in reads the next value from the in channel and adds it to the items.
 	go func() {
 		for p.in() {
 			// ...
 		}
 	}()
 
+	// Send an initial value on the in channel to ensure the in goroutine is running.
+	p.inCh <- Zero[T]()
+
+	// out reads the next value from the items and sends it to the out channel.
 	go func() {
 		defer close(p.outCh)
 
@@ -36,6 +41,9 @@ func NewPipe[T any]() (chan<- T, <-chan T) {
 			// ...
 		}
 	}()
+
+	// Receive an initial value from the out channel to ensure the out goroutine is running.
+	<-p.outCh
 
 	return p.inCh, p.outCh
 }

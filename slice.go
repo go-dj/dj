@@ -51,59 +51,59 @@ func GoMapN[T any](ctx context.Context, n int, fn func(int) T) []T {
 	return out
 }
 
-// ForEach calls the given function for each element in the given slice.
-func ForEach[T any](slice []T, fn func(T)) {
-	ForEachIdx(slice, func(_ int, v T) {
+// For calls the given function for each element in the given slice.
+func For[T any](slice []T, fn func(T)) {
+	ForIdx(slice, func(_ int, v T) {
 		fn(v)
 	})
 }
 
-// ForEachIdx calls the given function for each index of the given slice.
-func ForEachIdx[T any](slice []T, fn func(int, T)) {
+// ForIdx calls the given function for each index of the given slice.
+func ForIdx[T any](slice []T, fn func(int, T)) {
 	ForN(len(slice), func(i int) {
 		fn(i, slice[i])
 	})
 }
 
-// GoForEach calls the given function with each value in the given slice in parallel.
-func GoForEach[T any](ctx context.Context, slice []T, fn func(T)) {
-	GoForEachIdx(ctx, slice, func(_ int, v T) {
+// GoFor calls the given function with each value in the given slice in parallel.
+func GoFor[T any](ctx context.Context, slice []T, fn func(T)) {
+	GoForIdx(ctx, slice, func(_ int, v T) {
 		fn(v)
 	})
 }
 
-// GoForEachIdx calls the given function with each value in the given slice in parallel.
-func GoForEachIdx[T any](ctx context.Context, slice []T, fn func(int, T)) {
+// GoForIdx calls the given function with each value in the given slice in parallel.
+func GoForIdx[T any](ctx context.Context, slice []T, fn func(int, T)) {
 	GoForN(ctx, len(slice), func(i int) {
 		fn(i, slice[i])
 	})
 }
 
-// MapEach returns a slice of the results of the given function applied to each element in the given slice.
-func MapEach[T, U any](slice []T, fn func(T) U) []U {
-	return MapEachIdx(slice, func(_ int, v T) U {
+// Map returns a slice of the results of the given function applied to each element in the given slice.
+func Map[T, U any](slice []T, fn func(T) U) []U {
+	return MapIdx(slice, func(_ int, v T) U {
 		return fn(v)
 	})
 }
 
-// MapEachIdx returns a slice of the results of the given function applied to each index of the given slice.
-func MapEachIdx[T, U any](slice []T, fn func(int, T) U) []U {
+// MapIdx returns a slice of the results of the given function applied to each index of the given slice.
+func MapIdx[T, U any](slice []T, fn func(int, T) U) []U {
 	return MapN(len(slice), func(i int) U {
 		return fn(i, slice[i])
 	})
 }
 
-// GoMapEach returns a slice of the results of the given function applied to each element in the given slice
+// GoMap returns a slice of the results of the given function applied to each element in the given slice
 // in parallel.
-func GoMapEach[T, U any](ctx context.Context, slice []T, fn func(T) U) []U {
-	return GoMapEachIdx(ctx, slice, func(_ int, v T) U {
+func GoMap[T, U any](ctx context.Context, slice []T, fn func(T) U) []U {
+	return GoMapIdx(ctx, slice, func(_ int, v T) U {
 		return fn(v)
 	})
 }
 
-// GoMapEachIdx returns a slice of the results of the given function applied to each index of the given slice
+// GoMapIdx returns a slice of the results of the given function applied to each index of the given slice
 // in parallel.
-func GoMapEachIdx[T, U any](ctx context.Context, slice []T, fn func(int, T) U) []U {
+func GoMapIdx[T, U any](ctx context.Context, slice []T, fn func(int, T) U) []U {
 	return GoMapN(ctx, len(slice), func(i int) U {
 		return fn(i, slice[i])
 	})
@@ -233,7 +233,7 @@ func Equal[T comparable](in ...[]T) bool {
 
 // EqualFn returns true if the given slices are equal, according to the given function.
 func EqualFn[T any](in [][]T, eq func(T, T) bool) bool {
-	if !Same(MapEach(in, func(slice []T) int { return len(slice) })...) {
+	if !Same(Map(in, func(slice []T) int { return len(slice) })...) {
 		return false
 	}
 
@@ -246,9 +246,9 @@ func EqualFn[T any](in [][]T, eq func(T, T) bool) bool {
 	return true
 }
 
-// Join returns a slice of the elements in the given slices.
-func Join[T any](in ...[]T) []T {
-	out := make([]T, 0, Sum(MapEach(in, func(slice []T) int { return len(slice) })))
+// Concat returns a slice of the elements in the given slices.
+func Concat[T any](in ...[]T) []T {
+	out := make([]T, 0, Sum(Map(in, func(slice []T) int { return len(slice) })))
 
 	for _, slice := range in {
 		out = append(out, slice...)
@@ -260,7 +260,7 @@ func Join[T any](in ...[]T) []T {
 // Zip returns a slice of tuples, where each tuple contains the elements at the same index in the given slices.
 func Zip[T any](in ...[]T) [][]T {
 	return MapN(len(in[0]), func(idx int) []T {
-		return MapEach(in, func(slice []T) T {
+		return Map(in, func(slice []T) T {
 			return slice[idx]
 		})
 	})
@@ -269,7 +269,7 @@ func Zip[T any](in ...[]T) [][]T {
 // Unzip returns a slice of slices, where each slice contains the elements at the same index in the given tuples.
 func Unzip[T any](in [][]T) [][]T {
 	return MapN(len(in[0]), func(idx int) []T {
-		return MapEach(in, func(tuple []T) T {
+		return Map(in, func(tuple []T) T {
 			return tuple[idx]
 		})
 	})
@@ -285,7 +285,7 @@ func Chunk[T any](slice []T, size int) [][]T {
 
 	out := make([][]T, len(slice)/size+buf)
 
-	ForEachIdx(slice, func(i int, v T) {
+	ForIdx(slice, func(i int, v T) {
 		out[i/size] = append(out[i/size], v)
 	})
 
@@ -391,6 +391,70 @@ func CountFn[T any](in []T, fn func(T) bool) int {
 	})
 }
 
+// Contains returns true if the given slice contains the given element.
+func Contains[T comparable](in []T, elem T) bool {
+	return Any(in, func(v T) bool {
+		return v == elem
+	})
+}
+
+// ContainsAll returns true if the given slice contains all of the given elements.
+func ContainsAll[T comparable](in []T, elems ...T) bool {
+	return All(elems, func(elem T) bool {
+		return Contains(in, elem)
+	})
+}
+
+// ContainsAny returns true if the given slice contains any of the given elements.
+func ContainsAny[T comparable](in []T, elems ...T) bool {
+	return Any(elems, func(elem T) bool {
+		return Contains(in, elem)
+	})
+}
+
+// ContainsNone returns true if the given slice contains none of the given elements.
+func ContainsNone[T comparable](in []T, elems ...T) bool {
+	return !ContainsAny(in, elems...)
+}
+
+// Index returns the index of the given element in the given slice, or -1 if it is not found.
+func Index[T comparable](in []T, elem T) int {
+	return IndexFn(in, func(v T) bool {
+		return v == elem
+	})
+}
+
+// IndexFn returns the index of the first element that satisfies the given function in the given slice, or -1 if it is not found.
+func IndexFn[T any](in []T, fn func(T) bool) int {
+	for i, v := range in {
+		if fn(v) {
+			return i
+		}
+	}
+
+	return -1
+}
+
+// IndexAll returns the indices of all elements that are equal to the given element in the given slice.
+func IndexAll[T comparable](in []T, elem T) []int {
+	return IndexAllFn(in, func(v T) bool {
+		return v == elem
+	})
+}
+
+// IndexAllFn returns the indices of all elements that satisfy the given function in the given slice.
+func IndexAllFn[T any](in []T, fn func(T) bool) []int {
+	indices := make([]int, 0, len(in))
+
+	ForIdx(in, func(i int, v T) {
+		if fn(v) {
+			indices = append(indices, i)
+		}
+	})
+
+	return indices
+}
+
 // Filter returns a slice of the elements in the given slice that satisfy the given predicate.
 func Filter[T any](slice []T, fn func(T) bool) []T {
 	return FilterIdx(slice, func(_ int, v T) bool {
@@ -402,7 +466,7 @@ func Filter[T any](slice []T, fn func(T) bool) []T {
 func FilterIdx[T any](slice []T, fn func(int, T) bool) []T {
 	out := make([]T, 0, len(slice))
 
-	ForEachIdx(slice, func(i int, v T) {
+	ForIdx(slice, func(i int, v T) {
 		if fn(i, v) {
 			out = append(out, v)
 		}
@@ -422,7 +486,7 @@ func Uniq[T comparable](in []T) []T {
 func UniqFn[T any](in []T, eq func(T, T) bool) []T {
 	uniq := make([]T, 0, len(in))
 
-	ForEach(in, func(v T) {
+	For(in, func(v T) {
 		if None(uniq, func(other T) bool { return eq(other, v) }) {
 			uniq = append(uniq, v)
 		}
@@ -485,8 +549,8 @@ func DifferenceFn[T any](in [][]T, eq func(T, T) bool) []T {
 
 // Power returns a slice of all the possible combinations of the given slice.
 func Power[T any](in []T) [][]T {
-	return MapEach(PowerIdx(len(in)), func(idx []int) []T {
-		return MapEach(idx, func(i int) T {
+	return Map(PowerIdx(len(in)), func(idx []int) []T {
+		return Map(idx, func(i int) T {
 			return in[i]
 		})
 	})
@@ -507,19 +571,19 @@ func PowerIdx(n int) [][]int {
 	})
 }
 
-// Permutations returns a slice of all the possible permutations of the given slice.
-func Permutations[T any](in []T) [][]T {
+// Perms returns a slice of all the possible permutations of the given slice.
+func Perms[T any](in []T) [][]T {
 	return permute(in, Factorial(len(in)), 0)
 }
 
-// PermutationsIdx returns a slice containing the indices of all the possible permutations of a slice of the given length.
-func PermutationsIdx(n int) [][]int {
+// PermsIdx returns a slice containing the indices of all the possible permutations of a slice of the given length.
+func PermsIdx(n int) [][]int {
 	return permute(RangeN(n), Factorial(n), 0)
 }
 
 // Shuffle returns a shuffled slice of the given slice.
 func Shuffle[T any](in []T) []T {
-	return MapEach(rand.Perm(len(in)), func(idx int) T {
+	return Map(rand.Perm(len(in)), func(idx int) T {
 		return in[idx]
 	})
 }
@@ -528,7 +592,7 @@ func Shuffle[T any](in []T) []T {
 func Reverse[T any](in []T) []T {
 	out := make([]T, len(in))
 
-	ForEachIdx(in, func(i int, v T) {
+	ForIdx(in, func(i int, v T) {
 		out[len(in)-i-1] = v
 	})
 
@@ -559,75 +623,11 @@ func SortFn[T any](in []T, fn func(T, T) bool) []T {
 func Set[T comparable](in []T) map[T]struct{} {
 	set := make(map[T]struct{}, len(in))
 
-	ForEach(in, func(v T) {
+	For(in, func(v T) {
 		set[v] = struct{}{}
 	})
 
 	return set
-}
-
-// Contains returns true if the given slice contains the given element.
-func Contains[T comparable](in []T, elem T) bool {
-	return Any(in, func(v T) bool {
-		return v == elem
-	})
-}
-
-// ContainsAll returns true if the given slice contains all of the given elements.
-func ContainsAll[T comparable](in []T, elems ...T) bool {
-	return All(elems, func(elem T) bool {
-		return Contains(in, elem)
-	})
-}
-
-// ContainsAny returns true if the given slice contains any of the given elements.
-func ContainsAny[T comparable](in []T, elems ...T) bool {
-	return Any(elems, func(elem T) bool {
-		return Contains(in, elem)
-	})
-}
-
-// ContainsNone returns true if the given slice contains none of the given elements.
-func ContainsNone[T comparable](in []T, elems ...T) bool {
-	return !ContainsAny(in, elems...)
-}
-
-// Index returns the index of the given element in the given slice, or -1 if it is not found.
-func Index[T comparable](in []T, elem T) int {
-	return IndexFn(in, func(v T) bool {
-		return v == elem
-	})
-}
-
-// IndexFn returns the index of the first element that satisfies the given function in the given slice, or -1 if it is not found.
-func IndexFn[T any](in []T, fn func(T) bool) int {
-	for i, v := range in {
-		if fn(v) {
-			return i
-		}
-	}
-
-	return -1
-}
-
-// IndexAll returns the indices of all elements that are equal to the given element in the given slice.
-func IndexAll[T comparable](in []T, elem T) []int {
-	return IndexAllFn(in, func(v T) bool {
-		return v == elem
-	})
-}
-
-// IndexAllFn returns the indices of all elements that satisfy the given function in the given slice.
-func IndexAllFn[T any](in []T, fn func(T) bool) []int {
-	indices := make([]int, 0, len(in))
-
-	ForEachIdx(in, func(i int, v T) {
-		if fn(v) {
-			indices = append(indices, i)
-		}
-	})
-
-	return indices
 }
 
 // Insert returns a slice with the given elements inserted at the given index.
@@ -652,7 +652,7 @@ func Remove[T comparable](in []T, elems ...T) []T {
 func RemoveFn[T any](in []T, fn func(T) bool) []T {
 	out := make([]T, 0, len(in))
 
-	ForEach(in, func(v T) {
+	For(in, func(v T) {
 		if !fn(v) {
 			out = append(out, v)
 		}
@@ -680,7 +680,7 @@ func RemoveRange[T any](in []T, start, end int) []T {
 func RemoveIdx[T any](in []T, indices ...int) []T {
 	out := make([]T, 0, len(in)-len(indices))
 
-	ForEachIdx(in, func(i int, v T) {
+	ForIdx(in, func(i int, v T) {
 		if !Contains(indices, i) {
 			out = append(out, v)
 		}

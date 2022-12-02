@@ -42,19 +42,19 @@ func TestForwarChan(t *testing.T) {
 
 	// Forward the src channels to the dst channels.
 	go func() {
-		defer dj.CloseChan(dj.ToSend(dst...)...)
-		dj.ForwardChan(src, dj.ToSend(dst...))
+		defer dj.CloseChan(dj.AsSend(dst...)...)
+		dj.ForwardChan(src, dj.AsSend(dst...))
 	}()
 
 	// Collect the results.
-	require.ElementsMatch(t, dj.RangeN(9), dj.CollectChan(dj.MergeChan(dj.ToRecv(dst...)...)))
+	require.ElementsMatch(t, dj.RangeN(9), dj.CollectChan(dj.FanIn(dj.AsRecv(dst...)...)))
 }
 
 func TestJoinChan(t *testing.T) {
 	ch1 := newCh(1, 2, 3)
 	ch2 := newCh(4, 5, 6)
 
-	require.Equal(t, []int{1, 2, 3, 4, 5, 6}, dj.CollectChan(dj.JoinChan(ch1, ch2)))
+	require.Equal(t, []int{1, 2, 3, 4, 5, 6}, dj.CollectChan(dj.ConcatChan(ch1, ch2)))
 }
 
 func TestZipChan(t *testing.T) {
@@ -68,13 +68,13 @@ func TestMergeChan(t *testing.T) {
 	ch1 := newCh(1, 2, 3)
 	ch2 := newCh(4, 5, 6)
 
-	require.ElementsMatch(t, []int{1, 2, 3, 4, 5, 6}, dj.CollectChan(dj.MergeChan(ch1, ch2)))
+	require.ElementsMatch(t, []int{1, 2, 3, 4, 5, 6}, dj.CollectChan(dj.FanIn(ch1, ch2)))
 }
 
 func TestSplitChan(t *testing.T) {
-	chs := dj.SplitChan(newCh(dj.RangeN(1000)...), 4)
+	chs := dj.FanOut(newCh(dj.RangeN(1000)...), 4)
 
-	dj.ForEachIdx(chs, func(idx int, ch <-chan int) {
+	dj.ForIdx(chs, func(idx int, ch <-chan int) {
 		require.Equal(t, dj.Range(250*idx, 250*(idx+1)), dj.TakeChan(ch, 250))
 	})
 }

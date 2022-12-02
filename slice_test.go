@@ -88,7 +88,7 @@ func TestJoin(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, dj.Join(tt.in...))
+			require.Equal(t, tt.want, dj.Concat(tt.in...))
 		})
 	}
 }
@@ -313,7 +313,7 @@ func TestPermutations(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.ElementsMatch(t, tt.want, dj.Permutations(tt.in))
+			require.ElementsMatch(t, tt.want, dj.Perms(tt.in))
 		})
 	}
 }
@@ -344,13 +344,13 @@ func TestPermutationsIdx(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.ElementsMatch(t, tt.want, dj.PermutationsIdx(tt.in))
+			require.ElementsMatch(t, tt.want, dj.PermsIdx(tt.in))
 		})
 	}
 }
 
 func TestShuffle(t *testing.T) {
-	for _, slice := range dj.Permutations(dj.RangeN(6)) {
+	for _, slice := range dj.Perms(dj.RangeN(6)) {
 		require.Equal(t, dj.Sort(dj.Shuffle(slice)), dj.Sort(slice))
 	}
 }
