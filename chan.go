@@ -33,19 +33,9 @@ func TakeChanCtx[T any](ctx context.Context, ch <-chan T, n int) []T {
 	out := make([]T, 0, n)
 
 	for {
-		select {
-		case <-ctx.Done():
+		if v, ok := RecvCtx(ctx, ch); !ok {
 			return out
-
-		case v, ok := <-ch:
-			if !ok {
-				return out
-			}
-
-			out = append(out, v)
-		}
-
-		if len(out) == n {
+		} else if out = append(out, v); len(out) == n {
 			return out
 		}
 	}
@@ -62,17 +52,12 @@ func ForChan[T any](ch <-chan T, fn func(T)) {
 // It stops iterating when the context is canceled.
 func ForChanCtx[T any](ctx context.Context, ch <-chan T, fn func(context.Context, T)) {
 	for {
-		select {
-		case <-ctx.Done():
+		v, ok := RecvCtx(ctx, ch)
+		if !ok {
 			return
-
-		case v, ok := <-ch:
-			if !ok {
-				return
-			}
-
-			fn(ctx, v)
 		}
+
+		fn(ctx, v)
 	}
 }
 
@@ -197,51 +182,33 @@ func Send[T any](v T, chs ...chan<- T) {
 func SendCtx[T any](ctx context.Context, v T, chs ...chan<- T) {
 	reflect.Select(append(
 		Map(chs, func(ch chan<- T) reflect.SelectCase {
-			return reflect.SelectCase{
-				Dir:  reflect.SelectSend,
-				Chan: reflect.ValueOf(ch),
-				Send: reflect.ValueOf(v),
-			}
+			return sendCase(ch, v)
 		}),
-		reflect.SelectCase{
-			Dir:  reflect.SelectRecv,
-			Chan: reflect.ValueOf(ctx.Done()),
-		}),
-	)
+		recvCase(ctx.Done()),
+	))
 }
 
 // Recv receives a value from one of the given channels.
 // It blocks until a value is received, which it returns.
 // The boolean indicates whether the read was successful; it is false if the channel is closed.
 func Recv[T any](chs ...<-chan T) (T, bool) {
-	_, v, ok := reflect.Select(Map(chs, func(ch <-chan T) reflect.SelectCase {
-		return reflect.SelectCase{
-			Dir:  reflect.SelectRecv,
-			Chan: reflect.ValueOf(ch),
-		}
-	}))
-
-	return v.Interface().(T), ok
+	return RecvCtx(context.Background(), chs...)
 }
 
 // RecvCtx receives a value from one of the given channels.
 // It blocks until a value is received, which it returns, or the context is canceled.
 // The boolean indicates whether the read was successful; it is false if the channel is closed.
 func RecvCtx[T any](ctx context.Context, chs ...<-chan T) (T, bool) {
-	_, v, ok := reflect.Select(append(
+	if _, v, ok := reflect.Select(append(
 		Map(chs, func(ch <-chan T) reflect.SelectCase {
-			return reflect.SelectCase{
-				Dir:  reflect.SelectRecv,
-				Chan: reflect.ValueOf(ch),
-			}
+			return recvCase(ch)
 		}),
-		reflect.SelectCase{
-			Dir:  reflect.SelectRecv,
-			Chan: reflect.ValueOf(ctx.Done()),
-		}),
-	)
+		recvCase(ctx.Done()),
+	)); ok {
+		return v.Interface().(T), true
+	}
 
-	return v.Interface().(T), ok
+	return Zero[T](), false
 }
 
 // CloseChan closes the given channels.
@@ -263,4 +230,19 @@ func AsRecv[T any](ch ...chan T) []<-chan T {
 	return Map(ch, func(ch chan T) <-chan T {
 		return ch
 	})
+}
+
+func sendCase[T any](ch chan<- T, v T) reflect.SelectCase {
+	return reflect.SelectCase{
+		Dir:  reflect.SelectSend,
+		Chan: reflect.ValueOf(ch),
+		Send: reflect.ValueOf(v),
+	}
+}
+
+func recvCase[T any](ch <-chan T) reflect.SelectCase {
+	return reflect.SelectCase{
+		Dir:  reflect.SelectRecv,
+		Chan: reflect.ValueOf(ch),
+	}
 }
