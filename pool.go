@@ -8,25 +8,27 @@ import (
 // Jobs of type Req are submitted to the pool and are processed by a worker.
 // The result of the job is returned as a value of type Res.
 type WorkerPool[Req, Res any] struct {
+	ctx   context.Context
 	reqCh chan<- Job[Req, Res]
-	resCh <-chan Job[Req, Res]
-	sem   *Group
 }
 
 // NewWorkerPool returns a new worker pool with the given number of workers.
 // The given function is called for each job submitted to the pool.
 // The function must return the result of the job.
 func NewWorkerPool[Req, Res any](ctx context.Context, numWorkers int, fn func(context.Context, Req) (Res, error)) *WorkerPool[Req, Res] {
-	reqCh, resCh := NewPipe[Job[Req, Res]]()
+	// Create a channel to request jobs.
+	reqCh, jobCh := NewPipe[Job[Req, Res]]()
 
-	grp := NewGroup(ctx, NewSem(numWorkers))
+	// Create a group to manage the workers.
+	group := NewGroup(ctx, NewSem(numWorkers))
 
 	go func() {
 		defer close(reqCh)
-		defer grp.Wait()
+		defer group.Wait()
 
-		grp.GoN(numWorkers, func(ctx context.Context, _ int) {
-			ForChanCtx(ctx, resCh, func(ctx context.Context, job Job[Req, Res]) {
+		// Start numWorkers workers. Each worker will process jobs from the jobCh.
+		group.GoN(numWorkers, func(ctx context.Context, _ int) {
+			ForChanCtx(ctx, jobCh, func(ctx context.Context, job Job[Req, Res]) {
 				v, err := fn(ctx, job.req)
 				if err != nil {
 					job.postErr(err)
@@ -39,14 +41,23 @@ func NewWorkerPool[Req, Res any](ctx context.Context, numWorkers int, fn func(co
 		})
 	}()
 
-	return &WorkerPool[Req, Res]{reqCh: reqCh, resCh: resCh, sem: grp}
+	return &WorkerPool[Req, Res]{
+		ctx:   ctx,
+		reqCh: reqCh,
+	}
 }
 
 // Submit submits the given job to the pool.
 func (p *WorkerPool[Req, Res]) Submit(ctx context.Context, req Req) Job[Req, Res] {
 	job := newJob[Req, Res](ctx, req)
 
-	p.reqCh <- job
+	select {
+	case <-p.ctx.Done():
+		go job.postErr(p.ctx.Err())
+
+	default:
+		p.reqCh <- job
+	}
 
 	return job
 }
@@ -119,9 +130,6 @@ func (job *Job[Req, Res]) postRes(res Res) {
 	case <-job.ctx.Done():
 		// Context was canceled, don't send the result.
 
-	case <-job.done:
-		// Job must have failed.
-
 	case job.res <- res:
 		// ...
 	}
@@ -132,9 +140,6 @@ func (job *Job[Req, Res]) postErr(err error) {
 	select {
 	case <-job.ctx.Done():
 		// Context was canceled, don't send the error.
-
-	case <-job.done:
-		// Job must have succeeded.
 
 	case job.err <- err:
 		// ...

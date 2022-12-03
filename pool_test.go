@@ -75,7 +75,23 @@ func TestWorkerPool_Process_Error(t *testing.T) {
 	require.Empty(t, res)
 }
 
-func _TestWorkerPool_Close(t *testing.T) {
+func TestWorkerPool_JobContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create a new pool.
+	pool := newTestPool(ctx, 2)
+
+	// Submit a job which will fail.
+	job := pool.Submit(ctx, "foo")
+
+	// The job should fail.
+	v, err := job.R()
+	require.Error(t, err)
+	require.Zero(t, v)
+}
+
+func TestWorkerPool_Close(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
