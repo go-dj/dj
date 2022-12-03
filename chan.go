@@ -94,14 +94,9 @@ func FanInCtx[T any](ctx context.Context, chs ...<-chan T) <-chan T {
 		defer close(out)
 		defer grp.Wait()
 
-		For(chs, func(ch <-chan T) {
-			grp.Go(func(ctx context.Context) {
-				ForChanCtx(ctx, ch, func(ctx context.Context, v T) {
-					select {
-					case <-ctx.Done():
-					case out <- v:
-					}
-				})
+		grp.GoN(len(chs), func(ctx context.Context, i int) {
+			ForChanCtx(ctx, chs[i], func(ctx context.Context, v T) {
+				SendCtx(ctx, v, out)
 			})
 		})
 	}()

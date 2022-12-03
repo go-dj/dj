@@ -9,6 +9,7 @@ import (
 
 func TestPipe(t *testing.T) {
 	in, out := dj.NewPipe[int]()
+	defer close(in)
 
 	in <- 1
 	in <- 2
@@ -21,64 +22,80 @@ func TestPipe(t *testing.T) {
 
 func TestPipe_Large(t *testing.T) {
 	in, out := dj.NewPipe[int]()
+	defer close(in)
 
-	dj.ForN(1000, func(i int) {
+	dj.ForN(100, func(i int) {
 		in <- i
 	})
 
-	for i := 0; i < 1000; i++ {
+	dj.ForN(100, func(i int) {
 		require.Equal(t, i, <-out)
-	}
+	})
 }
 
 func TestPipe_Close(t *testing.T) {
 	in, out := dj.NewPipe[int]()
 
-	in <- 1
-	in <- 2
-	in <- 3
+	dj.ForN(100, func(i int) {
+		in <- i
+	})
 
 	close(in)
 
-	require.Equal(t, []int{1, 2, 3}, dj.CollectChan(out))
+	require.Equal(t, dj.RangeN(100), dj.CollectChan(out))
 }
 
 func TestPipe_Iterator(t *testing.T) {
 	in, out := dj.NewPipe[int]()
+	defer close(in)
 
-	in <- 1
-	in <- 2
-	in <- 3
+	dj.ForN(100, func(i int) {
+		in <- i
+	})
 
-	close(in)
-
-	require.Equal(t, []int{1, 2, 3}, dj.ChanIter(out).Collect())
+	require.Equal(t, dj.RangeN(100), dj.ChanIter(out).Take(100))
 }
 
 func TestPipe_Forward(t *testing.T) {
-	in1, out1 := dj.NewPipe[int]()
-	in2, out2 := dj.NewPipe[int]()
+	type pipe struct {
+		in  chan<- int
+		out <-chan int
+	}
+
+	// Create 100 pipes.
+	pipes := dj.MapN(100, func(int) pipe {
+		in, out := dj.NewPipe[int]()
+		return pipe{in, out}
+	})
+
+	// Chain the pipes together.
+	dj.ForWindow(pipes, 2, func(pair []pipe) {
+		go func() {
+			defer close(pair[1].in)
+			dj.ForwardChan([]<-chan int{pair[0].out}, []chan<- int{pair[1].in})
+		}()
+	})
 
 	// Write data into the first pipe's input channel.
-	dj.ChanWriter(in1).WriteFrom(dj.SliceIter(1, 2, 3))
+	pipes[0].in <- 1
+	pipes[0].in <- 2
+	pipes[0].in <- 3
 
-	// close the first pipe's input channel;
-	// the written data is still available in the output channel.
-	close(in1)
+	// It should be available in the last pipe's output channel.
+	require.Equal(t, 1, <-dj.Last(pipes).out)
+	require.Equal(t, 2, <-dj.Last(pipes).out)
+	require.Equal(t, 3, <-dj.Last(pipes).out)
 
-	// Forward the data from the first pipe to the second.
-	// Close the second pipe's input channel when finished.
-	go func() {
-		defer close(in2)
-		dj.ForwardChan([]<-chan int{out1}, []chan<- int{in2})
-	}()
+	// Close the first pipe's input channel.
+	close(pipes[0].in)
 
-	// Read data from the second pipe's output channel.
-	require.Equal(t, []int{1, 2, 3}, dj.ChanIter(out2).Collect())
+	// Read data from the last pipe's output channel.
+	require.Empty(t, dj.CollectChan(dj.Last(pipes).out))
 }
 
 func TestPipe_Read_Block(t *testing.T) {
 	in, out := dj.NewPipe[int]()
+	defer close(in)
 
 	go func() {
 		in <- 1
@@ -93,6 +110,7 @@ func TestPipe_Read_Block(t *testing.T) {
 
 func TestPipe_Write_Block(t *testing.T) {
 	in, out := dj.NewPipe[int]()
+	defer close(in)
 
 	go func() {
 		require.Equal(t, 1, <-out)
@@ -107,6 +125,7 @@ func TestPipe_Write_Block(t *testing.T) {
 
 func TestBufPipe_ReadWrite_Block(t *testing.T) {
 	in, out := dj.NewBufPipe[int](3)
+	defer close(in)
 
 	in <- 1
 	in <- 2

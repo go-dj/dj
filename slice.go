@@ -391,6 +391,11 @@ func CountFn[T any](in []T, fn func(T) bool) int {
 	})
 }
 
+// Last returns the last element in the given slice.
+func Last[T any](in []T) T {
+	return in[len(in)-1]
+}
+
 // Contains returns true if the given slice contains the given element.
 func Contains[T comparable](in []T, elem T) bool {
 	return Any(in, func(v T) bool {
