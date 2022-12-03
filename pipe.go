@@ -65,17 +65,18 @@ type pipe[T any] struct {
 
 // in writes the next value from the in channel to the items.
 func (p *pipe[T]) in() bool {
-	defer p.cond.Broadcast()
-
 	v, ok := <-p.inCh
+
+	p.cond.L.Lock()
+	defer p.cond.L.Unlock()
+
 	if !ok {
 		p.done.Store(true)
 	} else {
-		p.cond.L.Lock()
-		defer p.cond.L.Unlock()
-
 		p.buf = append(p.buf, v)
 	}
+
+	p.cond.Broadcast()
 
 	return ok
 }

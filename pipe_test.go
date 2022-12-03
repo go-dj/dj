@@ -86,11 +86,16 @@ func TestPipe_Forward(t *testing.T) {
 	require.Equal(t, 2, <-dj.Last(pipes).out)
 	require.Equal(t, 3, <-dj.Last(pipes).out)
 
+	// Add some more data.
+	pipes[0].in <- 4
+	pipes[0].in <- 5
+	pipes[0].in <- 6
+
 	// Close the first pipe's input channel.
 	close(pipes[0].in)
 
 	// Read data from the last pipe's output channel.
-	require.Empty(t, dj.CollectChan(dj.Last(pipes).out))
+	require.Equal(t, []int{4, 5, 6}, dj.CollectChan(dj.Last(pipes).out))
 }
 
 func TestPipe_Read_Block(t *testing.T) {
