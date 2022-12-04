@@ -2,7 +2,7 @@ package dj
 
 // Iter is a type that can be read sequentially.
 type Iter[T any] interface {
-	Iterable[T]
+	Readable[T]
 
 	// For calls the given function for each value in the iterator.
 	For(func(T))
@@ -26,9 +26,9 @@ type Iter[T any] interface {
 	WriteTo(Writable[T]) (int, bool)
 }
 
-// NewIter returns a new Iter that reads from the given Iterable.
-func NewIter[T any](r Iterable[T]) Iter[T] {
-	return &iter[T]{Iterable: r}
+// NewIter returns a new Iter that reads from the given Readable.
+func NewIter[T any](r Readable[T]) Iter[T] {
+	return &iter[T]{Readable: r}
 }
 
 // Peeker is a peekable iterator.
@@ -53,7 +53,7 @@ type peekIter[T any] struct {
 
 func (i *peekIter[T]) Peek() (T, bool) {
 	if !i.has {
-		v, ok := i.Next()
+		v, ok := i.Read()
 		if !ok {
 			return Zero[T](), false
 		}
@@ -65,9 +65,9 @@ func (i *peekIter[T]) Peek() (T, bool) {
 	return i.next, true
 }
 
-func (i *peekIter[T]) Next() (T, bool) {
+func (i *peekIter[T]) Read() (T, bool) {
 	if !i.has {
-		return i.Iter.Next()
+		return i.Iter.Read()
 	}
 
 	i.has = false
@@ -85,8 +85,8 @@ type mapIter[T, U any] struct {
 	fn   func(T) U
 }
 
-func (i *mapIter[T, U]) Next() (U, bool) {
-	v, ok := i.iter.Next()
+func (i *mapIter[T, U]) Read() (U, bool) {
+	v, ok := i.iter.Read()
 	if !ok {
 		return Zero[U](), false
 	}
@@ -104,11 +104,11 @@ type chunkIter[T any] struct {
 	size int
 }
 
-func (i *chunkIter[T]) Next() ([]T, bool) {
+func (i *chunkIter[T]) Read() ([]T, bool) {
 	out := make([]T, 0, i.size)
 
 	for len(out) < i.size {
-		v, ok := i.iter.Next()
+		v, ok := i.iter.Read()
 		if !ok {
 			break
 		}
@@ -129,9 +129,9 @@ type filterIter[T any] struct {
 	fn   func(T) bool
 }
 
-func (i *filterIter[T]) Next() (T, bool) {
+func (i *filterIter[T]) Read() (T, bool) {
 	for {
-		v, ok := i.iter.Next()
+		v, ok := i.iter.Read()
 		if !ok {
 			return Zero[T](), false
 		}
@@ -153,10 +153,10 @@ type flattenIter[T any] struct {
 	curr Iter[T]
 }
 
-func (i *flattenIter[T]) Next() (T, bool) {
+func (i *flattenIter[T]) Read() (T, bool) {
 	for {
 		if i.curr == nil {
-			next, ok := i.iter.Next()
+			next, ok := i.iter.Read()
 			if !ok {
 				return Zero[T](), false
 			}
@@ -164,7 +164,7 @@ func (i *flattenIter[T]) Next() (T, bool) {
 			i.curr = next
 		}
 
-		v, ok := i.curr.Next()
+		v, ok := i.curr.Read()
 		if ok {
 			return v, true
 		}
@@ -188,7 +188,7 @@ type zipIter[T any] struct {
 	iters []Iter[T]
 }
 
-func (i *zipIter[T]) Next() ([]T, bool) {
+func (i *zipIter[T]) Read() ([]T, bool) {
 	if len(i.iters) == 0 {
 		return nil, false
 	}
@@ -196,7 +196,7 @@ func (i *zipIter[T]) Next() ([]T, bool) {
 	out := make([]T, len(i.iters))
 
 	for j, iter := range i.iters {
-		v, ok := iter.Next()
+		v, ok := iter.Read()
 		if !ok {
 			return nil, false
 		}

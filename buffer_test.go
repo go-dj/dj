@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRWBuffer_Iterable(t *testing.T) {
+func TestRWBuffer_Readable(t *testing.T) {
 	buf := dj.NewRWBuffer([]int{1, 2, 3})
 
 	require.Equal(t, []int{1, 2, 3}, dj.NewIter[int](buf).Collect())

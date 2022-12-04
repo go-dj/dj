@@ -10,10 +10,10 @@ type writer[T any] struct {
 	Writable[T]
 }
 
-func (w writer[T]) WriteFrom(r Iterable[T]) (int, bool) {
+func (w writer[T]) WriteFrom(r Readable[T]) (int, bool) {
 	var count int
 
-	for v, ok := r.Next(); ok; v, ok = r.Next() {
+	for v, ok := r.Read(); ok; v, ok = r.Read() {
 		if !w.Write(v) {
 			return count, false
 		}

@@ -74,7 +74,7 @@ func TestWithPeek(t *testing.T) {
 
 	// Call read to get the first value.
 	{
-		next, ok := iter.Next()
+		next, ok := iter.Read()
 		require.True(t, ok)
 		require.Equal(t, 1, next)
 	}
@@ -95,7 +95,7 @@ func TestWithPeek(t *testing.T) {
 
 	// Call read to get the next value.
 	{
-		next, ok := iter.Next()
+		next, ok := iter.Read()
 		require.True(t, ok)
 		require.Equal(t, 2, next)
 	}
@@ -109,7 +109,7 @@ func TestWithPeek(t *testing.T) {
 
 	// Call read to get the last value.
 	{
-		next, ok := iter.Next()
+		next, ok := iter.Read()
 		require.True(t, ok)
 		require.Equal(t, 3, next)
 	}
@@ -122,7 +122,7 @@ func TestWithPeek(t *testing.T) {
 
 	// There should be no more values when calling next.
 	{
-		_, ok := iter.Next()
+		_, ok := iter.Read()
 		require.False(t, ok)
 	}
 }

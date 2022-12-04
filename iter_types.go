@@ -12,7 +12,7 @@ type sliceIter[T any] struct {
 	index int
 }
 
-func (i *sliceIter[T]) Next() (T, bool) {
+func (i *sliceIter[T]) Read() (T, bool) {
 	if i.index >= len(i.slice) {
 		return Zero[T](), false
 	}
@@ -39,7 +39,7 @@ type chanIter[T any] struct {
 	ch  <-chan T
 }
 
-func (i *chanIter[T]) Next() (T, bool) {
+func (i *chanIter[T]) Read() (T, bool) {
 	select {
 	case <-i.ctx.Done():
 		return Zero[T](), false
@@ -58,6 +58,6 @@ type funcIter[T any] struct {
 	fn func() (T, bool)
 }
 
-func (i *funcIter[T]) Next() (T, bool) {
+func (i *funcIter[T]) Read() (T, bool) {
 	return i.fn()
 }

@@ -17,7 +17,7 @@ func (b *RWBuffer[T]) Write(v T) bool {
 }
 
 // Next returns the next value from the buffer.
-func (b *RWBuffer[T]) Next() (T, bool) {
+func (b *RWBuffer[T]) Read() (T, bool) {
 	if len(b.items) == 0 {
 		return Zero[T](), false
 	}
