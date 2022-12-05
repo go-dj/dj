@@ -407,24 +407,24 @@ func TestGoForWindowErr(t *testing.T) {
 }
 
 func TestGoForWindowIdx(t *testing.T) {
-	got := make(map[int][]int)
+	got := dj.NewMap[int, []int]()
 
 	dj.GoForWindowIdx(context.Background(), dj.RangeN(5), 3, func(_ context.Context, idx int, window []int) {
-		got[idx] = window
+		got.Set(idx, window)
 	})
 
 	require.Equal(t, map[int][]int{
 		0: {0, 1, 2},
 		1: {1, 2, 3},
 		2: {2, 3, 4},
-	}, got)
+	}, got.Items())
 }
 
 func TestGoForWindowIdxErr(t *testing.T) {
-	got := make(map[int][]int)
+	got := dj.NewMap[int, []int]()
 
 	err := dj.GoForWindowIdxErr(context.Background(), dj.RangeN(5), 3, func(_ context.Context, idx int, window []int) error {
-		got[idx] = window
+		got.Set(idx, window)
 		return nil
 	})
 	require.NoError(t, err)
@@ -432,7 +432,7 @@ func TestGoForWindowIdxErr(t *testing.T) {
 		0: {0, 1, 2},
 		1: {1, 2, 3},
 		2: {2, 3, 4},
-	}, got)
+	}, got.Items())
 
 	require.Error(t, dj.GoForWindowIdxErr(context.Background(), dj.RangeN(5), 3, func(_ context.Context, idx int, window []int) error {
 		return errors.New("oops")
