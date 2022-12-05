@@ -27,7 +27,7 @@ func NewWorkerPool[Req, Res any](ctx context.Context, numWorkers int, fn func(co
 		defer group.Wait()
 
 		// Start numWorkers workers. Each worker will process jobs from the jobCh.
-		group.GoN(numWorkers, func(ctx context.Context, _ int) {
+		group.Go(numWorkers, func(ctx context.Context, _ int) {
 			ForChanCtx(ctx, jobCh, func(ctx context.Context, job Job[Req, Res]) {
 				v, err := fn(ctx, job.req)
 				if err != nil {
@@ -68,7 +68,7 @@ func (p *WorkerPool[Req, Res]) Process(ctx context.Context, reqs ...Req) ([]Res,
 	defer cancel()
 
 	// Submit the jobs to the pool.
-	jobs := Map(reqs, func(req Req) Job[Req, Res] {
+	jobs := MapEach(reqs, func(req Req) Job[Req, Res] {
 		return p.Submit(ctx, req)
 	})
 

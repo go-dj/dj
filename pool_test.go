@@ -22,7 +22,7 @@ func TestWorkerPool_Submit(t *testing.T) {
 	})
 
 	// Each job should be processed.
-	dj.ForIdx(jobs, func(i int, job dj.Job[string, int]) {
+	dj.ForEachIdx(jobs, func(i int, job dj.Job[string, int]) {
 		v, err := job.R()
 		require.NoError(t, err)
 		require.Equal(t, i, v)
@@ -57,7 +57,7 @@ func TestWorkerPool_Process(t *testing.T) {
 	require.NoError(t, err)
 
 	// Each job should be processed.
-	dj.ForIdx(res, func(i int, v int) {
+	dj.ForEachIdx(res, func(i int, v int) {
 		require.Equal(t, i, v)
 	})
 }

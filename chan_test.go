@@ -74,7 +74,7 @@ func TestMergeChan(t *testing.T) {
 func TestSplitChan(t *testing.T) {
 	chs := dj.FanOut(newCh(dj.RangeN(1000)...), 4)
 
-	dj.ForIdx(chs, func(idx int, ch <-chan int) {
+	dj.ForEachIdx(chs, func(idx int, ch <-chan int) {
 		require.Equal(t, dj.Range(250*idx, 250*(idx+1)), dj.TakeChan(ch, 250))
 	})
 }

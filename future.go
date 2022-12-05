@@ -1,5 +1,7 @@
 package dj
 
+import "sync"
+
 // Future is a future value.
 // Its value is not available until the future is resolved.
 type Future[T any] struct {
@@ -23,4 +25,23 @@ func (f *Future[T]) Set(v T) {
 func (f *Future[T]) Get() T {
 	<-f.done
 	return f.value
+}
+
+// Singular obtains a value exactly once.
+// Any subsequent attempts to set the value will be ignored.
+type Singular[T any] struct {
+	once sync.Once
+	val  T
+}
+
+// Set sets the value if it has not already been set.
+func (s *Singular[T]) Set(val T) {
+	s.once.Do(func() {
+		s.val = val
+	})
+}
+
+// Get returns the value if it has been set.
+func (s *Singular[T]) Get() T {
+	return s.val
 }

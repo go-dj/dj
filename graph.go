@@ -21,7 +21,7 @@ func BFSCtx[T any](ctx context.Context, root T, next func(T) []T, fn func(T)) {
 			return
 		} else {
 			for _, v := range next(v) {
-				queue.Push(v)
+				queue.PushBack(v)
 			}
 		}
 	}
@@ -46,7 +46,7 @@ func DFSCtx[T any](ctx context.Context, root T, next func(T) []T, fn func(T)) {
 			return
 		} else {
 			for _, v := range next(v) {
-				queue.Push(v)
+				queue.PushBack(v)
 			}
 		}
 	}

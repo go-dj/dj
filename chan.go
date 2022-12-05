@@ -79,7 +79,7 @@ func FanInCtx[T any](ctx context.Context, chs ...<-chan T) <-chan T {
 		defer close(out)
 		defer grp.Wait()
 
-		grp.GoN(len(chs), func(ctx context.Context, i int) {
+		grp.Go(len(chs), func(ctx context.Context, i int) {
 			ForChanCtx(ctx, chs[i], func(ctx context.Context, v T) {
 				SendCtx(ctx, v, out)
 			})
@@ -161,7 +161,7 @@ func ZipChanCtx[T any](ctx context.Context, chs ...<-chan T) <-chan []T {
 	go func() {
 		defer close(out)
 
-		in := ZipIter(Map(chs, func(ch <-chan T) Iter[T] {
+		in := ZipIter(MapEach(chs, func(ch <-chan T) Iter[T] {
 			return ChanIterCtx(ctx, ch)
 		})...).Recv()
 
@@ -181,7 +181,7 @@ func Send[T any](v T, chs ...chan<- T) {
 // It blocks until the value is sent or the context is canceled.
 func SendCtx[T any](ctx context.Context, v T, chs ...chan<- T) {
 	reflect.Select(append(
-		Map(chs, func(ch chan<- T) reflect.SelectCase {
+		MapEach(chs, func(ch chan<- T) reflect.SelectCase {
 			return sendCase(ch, v)
 		}),
 		recvCase(ctx.Done()),
@@ -200,7 +200,7 @@ func Recv[T any](chs ...<-chan T) (T, bool) {
 // The boolean indicates whether the read was successful; it is false if the channel is closed.
 func RecvCtx[T any](ctx context.Context, chs ...<-chan T) (T, bool) {
 	if _, v, ok := reflect.Select(append(
-		Map(chs, func(ch <-chan T) reflect.SelectCase {
+		MapEach(chs, func(ch <-chan T) reflect.SelectCase {
 			return recvCase(ch)
 		}),
 		recvCase(ctx.Done()),
@@ -213,21 +213,21 @@ func RecvCtx[T any](ctx context.Context, chs ...<-chan T) (T, bool) {
 
 // CloseChan closes the given channels.
 func CloseChan[T any](ch ...chan<- T) {
-	For(ch, func(ch chan<- T) {
+	ForEach(ch, func(ch chan<- T) {
 		close(ch)
 	})
 }
 
 // AsSend converts the given channels to send-only channels.
 func AsSend[T any](ch ...chan T) []chan<- T {
-	return Map(ch, func(ch chan T) chan<- T {
+	return MapEach(ch, func(ch chan T) chan<- T {
 		return ch
 	})
 }
 
 // AsRecv converts the given channels to receive-only channels.
 func AsRecv[T any](ch ...chan T) []<-chan T {
-	return Map(ch, func(ch chan T) <-chan T {
+	return MapEach(ch, func(ch chan T) <-chan T {
 		return ch
 	})
 }
