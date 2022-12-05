@@ -1,4 +1,4 @@
-package dj
+package nett
 
 import (
 	"bytes"
