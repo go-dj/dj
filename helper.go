@@ -11,6 +11,15 @@ func Pointer[T any](v T) *T {
 	return &v
 }
 
+// Must returns the given value or panics if the given error is not nil.
+func Must[T any](v T, err error) T {
+	if err != nil {
+		panic(err)
+	}
+
+	return v
+}
+
 // Factorial returns the Factorial of the given number.
 func Factorial(n int) int {
 	if n < 2 {

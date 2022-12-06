@@ -5,7 +5,7 @@ type Writer[T any] interface {
 	Writable[T]
 
 	// WriteFrom writes all the values from the given Readable to the writer.
-	WriteFrom(Readable[T]) (int, bool)
+	WriteFrom(Readable[T]) (int, error)
 }
 
 // NewWriter returns a new Writer that writes to the given Writable.

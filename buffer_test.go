@@ -10,14 +10,16 @@ import (
 func TestRWBuffer_Readable(t *testing.T) {
 	buf := dj.NewRWBuffer([]int{1, 2, 3})
 
-	require.Equal(t, []int{1, 2, 3}, dj.NewIter[int](buf).Collect())
+	got, err := dj.NewIter[int](buf).Collect()
+	require.NoError(t, err)
+	require.Equal(t, []int{1, 2, 3}, got)
 }
 
 func TestRWBuffer_Writable(t *testing.T) {
 	buf := dj.NewRWBuffer[int](nil)
 
-	n, ok := dj.NewWriter[int](buf).WriteFrom(dj.SliceIter(1, 2, 3))
-	require.True(t, ok)
+	n, err := dj.NewWriter[int](buf).WriteFrom(dj.SliceIter(1, 2, 3))
+	require.NoError(t, err)
 	require.Equal(t, 3, n)
 }
 
@@ -29,21 +31,27 @@ func TestRWBuffer_RW(t *testing.T) {
 	w := dj.NewWriter[int](buf)
 
 	// Write some data.
-	n, ok := w.WriteFrom(dj.SliceIter(1, 2, 3))
-	require.True(t, ok)
+	n, err := w.WriteFrom(dj.SliceIter(1, 2, 3))
+	require.NoError(t, err)
 	require.Equal(t, 3, n)
 
 	// Read it back.
-	require.Equal(t, []int{1, 2, 3}, r.Collect())
+	got, err := r.Collect()
+	require.NoError(t, err)
+	require.Equal(t, []int{1, 2, 3}, got)
 
 	// The buffer should be empty now.
-	require.Equal(t, []int{}, r.Collect())
+	empty, err := r.Collect()
+	require.NoError(t, err)
+	require.Equal(t, []int{}, empty)
 
 	// Write some more data.
-	n, ok = w.WriteFrom(dj.SliceIter(4, 5, 6))
-	require.True(t, ok)
+	n, err = w.WriteFrom(dj.SliceIter(4, 5, 6))
+	require.NoError(t, err)
 	require.Equal(t, 3, n)
 
 	// Read it back.
-	require.Equal(t, []int{4, 5, 6}, r.Collect())
+	more, err := r.Collect()
+	require.NoError(t, err)
+	require.Equal(t, []int{4, 5, 6}, more)
 }

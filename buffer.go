@@ -10,21 +10,21 @@ func NewRWBuffer[T any](items []T) *RWBuffer[T] {
 }
 
 // Write writes the given value to the buffer.
-func (b *RWBuffer[T]) Write(v T) bool {
+func (b *RWBuffer[T]) Write(v T) error {
 	b.items = append(b.items, v)
 
-	return true
+	return nil
 }
 
 // Next returns the next value from the buffer.
-func (b *RWBuffer[T]) Read() (T, bool) {
+func (b *RWBuffer[T]) Read() (Result[T], bool) {
 	if len(b.items) == 0 {
-		return Zero[T](), false
+		return Ok(Zero[T]()), false
 	}
 
 	v := b.items[0]
 
 	b.items = b.items[1:]
 
-	return v, true
+	return Ok(v), true
 }

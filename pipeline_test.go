@@ -26,8 +26,8 @@ func TestPipeline(t *testing.T) {
 		// ...
 	}
 
-	require.Equal(t, 2, (<-outCh).Value())
-	require.Equal(t, 4, (<-outCh).Value())
+	require.Equal(t, 2, (<-outCh).Val())
+	require.Equal(t, 4, (<-outCh).Val())
 }
 
 func TestPipeline_NoBuffer(t *testing.T) {
@@ -41,7 +41,7 @@ func TestPipeline_NoBuffer(t *testing.T) {
 	})
 
 	dj.ForN(10, func(i int) {
-		require.Equal(t, i*2, (<-outCh).Value())
+		require.Equal(t, i*2, (<-outCh).Val())
 	})
 }
 
@@ -53,6 +53,6 @@ func TestPipeline_Error(t *testing.T) {
 	inCh <- "1"
 	inCh <- "two"
 
-	require.NoError(t, (<-outCh).Error())
-	require.Error(t, (<-outCh).Error())
+	require.NoError(t, (<-outCh).Err())
+	require.Error(t, (<-outCh).Err())
 }

@@ -53,7 +53,9 @@ func TestPipe_Iterator(t *testing.T) {
 		in <- i
 	})
 
-	require.Equal(t, dj.RangeN(100), dj.ChanIter(out).Take(100))
+	got, err := dj.ChanIter(out).Take(100)
+	require.NoError(t, err)
+	require.Equal(t, dj.RangeN(100), got)
 }
 
 func TestPipe_Forward(t *testing.T) {

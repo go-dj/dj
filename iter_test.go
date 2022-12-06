@@ -1,6 +1,7 @@
 package dj_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/go-dj/dj"
@@ -33,7 +34,9 @@ func TestIter_Collect(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, tt.in.Collect())
+			got, err := tt.in.Collect()
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -76,42 +79,42 @@ func TestWithPeek(t *testing.T) {
 	{
 		next, ok := iter.Read()
 		require.True(t, ok)
-		require.Equal(t, 1, next)
+		require.Equal(t, 1, next.Val())
 	}
 
 	// Call peek to get the next value without advancing the iterator.
 	{
 		peek, ok := iter.Peek()
 		require.True(t, ok)
-		require.Equal(t, 2, peek)
+		require.Equal(t, 2, peek.Val())
 	}
 
 	// Call peek again, the value should be the same.
 	{
 		peek, ok := iter.Peek()
 		require.True(t, ok)
-		require.Equal(t, 2, peek)
+		require.Equal(t, 2, peek.Val())
 	}
 
 	// Call read to get the next value.
 	{
 		next, ok := iter.Read()
 		require.True(t, ok)
-		require.Equal(t, 2, next)
+		require.Equal(t, 2, next.Val())
 	}
 
 	// Call peek to peek at the last value.
 	{
 		peek, ok := iter.Peek()
 		require.True(t, ok)
-		require.Equal(t, 3, peek)
+		require.Equal(t, 3, peek.Val())
 	}
 
 	// Call read to get the last value.
 	{
 		next, ok := iter.Read()
 		require.True(t, ok)
-		require.Equal(t, 3, next)
+		require.Equal(t, 3, next.Val())
 	}
 
 	// There should be no more values when calling peek.
@@ -131,33 +134,35 @@ func TestMapIter(t *testing.T) {
 	tests := []struct {
 		name string
 		in   dj.Iter[int]
-		fn   func(int) int
+		fn   func(int) dj.Result[int]
 		want []int
 	}{
 		{
 			name: "add 1",
 			in:   dj.SliceIter(1, 2, 3),
-			fn:   func(i int) int { return i + 1 },
+			fn:   func(i int) dj.Result[int] { return dj.Ok(i + 1) },
 			want: []int{2, 3, 4},
 		},
 
 		{
 			name: "double",
 			in:   dj.SliceIter(1, 2, 3),
-			fn:   func(i int) int { return i * 2 },
+			fn:   func(i int) dj.Result[int] { return dj.Ok(i * 2) },
 			want: []int{2, 4, 6},
 		},
 
 		{
 			name: "empty",
 			in:   dj.SliceIter[int](),
-			fn:   func(i int) int { return i + 1 },
+			fn:   func(i int) dj.Result[int] { return dj.Ok(i + 1) },
 			want: []int{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, dj.MapIter(tt.in, tt.fn).Collect())
+			got, err := dj.MapIter(tt.in, tt.fn).Collect()
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -206,7 +211,9 @@ func TestChunkIter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, dj.ChunkIter(tt.in, tt.size).Collect())
+			got, err := dj.ChunkIter(tt.in, tt.size).Collect()
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -241,7 +248,9 @@ func TestFilterIter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, dj.FilterIter(tt.in, tt.fn).Collect())
+			got, err := dj.FilterIter(tt.in, tt.fn).Collect()
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -289,7 +298,9 @@ func TestFlattenIter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, dj.FlattenIter(tt.in).Collect())
+			got, err := dj.FlattenIter(tt.in).Collect()
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -337,7 +348,9 @@ func TestJoinIter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, dj.JoinIter(tt.in...).Collect())
+			got, err := dj.JoinIter(tt.in...).Collect()
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -384,7 +397,25 @@ func TestZipIter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, dj.ZipIter(tt.in...).Collect())
+			got, err := dj.ZipIter(tt.in...).Collect()
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
 		})
 	}
+}
+
+func TestIter_Collect_Error(t *testing.T) {
+	var i int
+
+	iter := dj.FuncIter(func() (dj.Result[int], bool) {
+		if i++; i < 3 {
+			return dj.Ok(i), true
+		} else {
+			return dj.Err[int](errors.New("error")), false
+		}
+	})
+
+	got, err := iter.Collect()
+	require.Error(t, err)
+	require.Equal(t, []int{1, 2}, got)
 }

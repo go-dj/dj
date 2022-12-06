@@ -2,28 +2,6 @@ package dj
 
 import "context"
 
-// SliceWriter returns a writer that writes to the given slice.
-func SliceWriter[T any](slice []T) Writer[T] {
-	return NewWriter[T](&sliceWriter[T]{slice: slice})
-}
-
-type sliceWriter[T any] struct {
-	slice []T
-	index int
-}
-
-func (i *sliceWriter[T]) Write(v T) bool {
-	if i.index >= len(i.slice) {
-		return false
-	}
-
-	i.slice[i.index] = v
-
-	i.index++
-
-	return true
-}
-
 // ChanWriter returns a writer that writes to the given channel.
 func ChanWriter[T any](ch chan<- T) Writer[T] {
 	return NewWriter[T](&chanWriter[T]{ctx: context.Background(), ch: ch})
@@ -39,25 +17,25 @@ type chanWriter[T any] struct {
 	ch  chan<- T
 }
 
-func (i *chanWriter[T]) Write(v T) bool {
+func (i *chanWriter[T]) Write(v T) error {
 	select {
 	case <-i.ctx.Done():
-		return false
+		return i.ctx.Err()
 
 	case i.ch <- v:
-		return true
+		return nil
 	}
 }
 
 // FuncWriter returns a writer that calls the given function for each value to be written.
-func FuncWriter[T any](fn func(T) bool) Writer[T] {
+func FuncWriter[T any](fn func(T) error) Writer[T] {
 	return NewWriter[T](&funcWriter[T]{fn: fn})
 }
 
 type funcWriter[T any] struct {
-	fn func(T) bool
+	fn func(T) error
 }
 
-func (i *funcWriter[T]) Write(v T) bool {
+func (i *funcWriter[T]) Write(v T) error {
 	return i.fn(v)
 }

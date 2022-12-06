@@ -12,16 +12,16 @@ type sliceIter[T any] struct {
 	index int
 }
 
-func (i *sliceIter[T]) Read() (T, bool) {
+func (i *sliceIter[T]) Read() (Result[T], bool) {
 	if i.index >= len(i.slice) {
-		return Zero[T](), false
+		return Ok(Zero[T]()), false
 	}
 
 	v := i.slice[i.index]
 
 	i.index++
 
-	return v, true
+	return Ok(v), true
 }
 
 // ChanIter returns an iterator over the given channel.
@@ -39,25 +39,25 @@ type chanIter[T any] struct {
 	ch  <-chan T
 }
 
-func (i *chanIter[T]) Read() (T, bool) {
+func (i *chanIter[T]) Read() (Result[T], bool) {
 	select {
 	case <-i.ctx.Done():
-		return Zero[T](), false
+		return Err[T](i.ctx.Err()), false
 
 	case v, ok := <-i.ch:
-		return v, ok
+		return Ok(v), ok
 	}
 }
 
 // FuncIter returns an iterator over the given function.
-func FuncIter[T any](fn func() (T, bool)) Iter[T] {
+func FuncIter[T any](fn func() (Result[T], bool)) Iter[T] {
 	return NewIter[T](&funcIter[T]{fn: fn})
 }
 
 type funcIter[T any] struct {
-	fn func() (T, bool)
+	fn func() (Result[T], bool)
 }
 
-func (i *funcIter[T]) Read() (T, bool) {
+func (i *funcIter[T]) Read() (Result[T], bool) {
 	return i.fn()
 }
