@@ -33,7 +33,7 @@ func TakeChanCtx[T any](ctx context.Context, ch <-chan T, n int) []T {
 	out := make([]T, 0, n)
 
 	for {
-		if v, ok := RecvCtx(ctx, ch); !ok {
+		if v, ok := RecvFromCtx(ctx, ch); !ok {
 			return out
 		} else if out = append(out, v); len(out) == n {
 			return out
@@ -52,13 +52,64 @@ func ForChan[T any](ch <-chan T, fn func(T)) {
 // It stops iterating when the context is canceled.
 func ForChanCtx[T any](ctx context.Context, ch <-chan T, fn func(context.Context, T)) {
 	for {
-		v, ok := RecvCtx(ctx, ch)
+		v, ok := RecvFromCtx(ctx, ch)
 		if !ok {
 			return
 		}
 
 		fn(ctx, v)
 	}
+}
+
+// MapChan returns a channel that applies the given function to each value in the input channel.
+func MapChan[T, R any](ch <-chan T, fn func(T) R) <-chan R {
+	return MapChanCtx(context.Background(), ch, func(_ context.Context, v T) R {
+		return fn(v)
+	})
+}
+
+// MapChanCtx returns a channel that applies the given function to each value in the input channel.
+// It stops iterating when the context is canceled.
+func MapChanCtx[T, R any](ctx context.Context, ch <-chan T, fn func(context.Context, T) R) <-chan R {
+	out := make(chan R)
+
+	go func() {
+		defer close(out)
+
+		ForChanCtx(ctx, ch, func(ctx context.Context, v T) {
+			out <- fn(ctx, v)
+		})
+	}()
+
+	return out
+}
+
+// GoMapChan returns a channel that applies the given function to each value in the input channel in parallel.
+func GoMapChan[T, R any](ch <-chan T, fn func(T) R) <-chan R {
+	return GoMapChanCtx(context.Background(), ch, func(_ context.Context, v T) R {
+		return fn(v)
+	})
+}
+
+// GoMapChanCtx returns a channel that applies the given function to each value in the input channel in parallel.
+// It stops iterating when the context is canceled.
+func GoMapChanCtx[T, R any](ctx context.Context, ch <-chan T, fn func(context.Context, T) R) <-chan R {
+	out := make(chan R)
+
+	go func() {
+		defer close(out)
+
+		group := NewGroup(ctx, NewSem(parallelismFromCtx(ctx)))
+		defer group.Wait()
+
+		group.Go(parallelismFromCtx(ctx), func(ctx context.Context, _ int) {
+			ForChanCtx(ctx, ch, func(ctx context.Context, v T) {
+				out <- fn(ctx, v)
+			})
+		})
+	}()
+
+	return out
 }
 
 // FanIn merges the given channels into a single channel.
@@ -81,7 +132,7 @@ func FanInCtx[T any](ctx context.Context, chs ...<-chan T) <-chan T {
 
 		grp.Go(len(chs), func(ctx context.Context, i int) {
 			ForChanCtx(ctx, chs[i], func(ctx context.Context, v T) {
-				SendCtx(ctx, v, out)
+				SendToCtx(ctx, v, out)
 			})
 		})
 	}()
@@ -119,7 +170,7 @@ func ForwardChan[T any](src []<-chan T, dst []chan<- T) {
 // It stops forwarding when the context is canceled.
 func ForwardChanCtx[T any](ctx context.Context, src []<-chan T, dst []chan<- T) {
 	ForChanCtx(ctx, FanInCtx(ctx, src...), func(ctx context.Context, v T) {
-		SendCtx(ctx, v, dst...)
+		SendToCtx(ctx, v, dst...)
 	})
 }
 
@@ -171,15 +222,15 @@ func ZipChanCtx[T any](ctx context.Context, chs ...<-chan T) <-chan []T {
 	return out
 }
 
-// Send sends the given value to one of the given channels.
+// SendTo sends the given value to one of the given channels.
 // It blocks until the value is sent.
-func Send[T any](v T, chs ...chan<- T) {
-	SendCtx(context.Background(), v, chs...)
+func SendTo[T any](v T, chs ...chan<- T) {
+	SendToCtx(context.Background(), v, chs...)
 }
 
-// SendCtx sends the given value to one of the given channels.
+// SendToCtx sends the given value to one of the given channels.
 // It blocks until the value is sent or the context is canceled.
-func SendCtx[T any](ctx context.Context, v T, chs ...chan<- T) {
+func SendToCtx[T any](ctx context.Context, v T, chs ...chan<- T) {
 	reflect.Select(append(
 		MapEach(chs, func(ch chan<- T) reflect.SelectCase {
 			return sendCase(ch, v)
@@ -188,17 +239,17 @@ func SendCtx[T any](ctx context.Context, v T, chs ...chan<- T) {
 	))
 }
 
-// Recv receives a value from one of the given channels.
+// RecvFrom receives a value from one of the given channels.
 // It blocks until a value is received, which it returns.
 // The boolean indicates whether the read was successful; it is false if the channel is closed.
-func Recv[T any](chs ...<-chan T) (T, bool) {
-	return RecvCtx(context.Background(), chs...)
+func RecvFrom[T any](chs ...<-chan T) (T, bool) {
+	return RecvFromCtx(context.Background(), chs...)
 }
 
-// RecvCtx receives a value from one of the given channels.
+// RecvFromCtx receives a value from one of the given channels.
 // It blocks until a value is received, which it returns, or the context is canceled.
 // The boolean indicates whether the read was successful; it is false if the channel is closed.
-func RecvCtx[T any](ctx context.Context, chs ...<-chan T) (T, bool) {
+func RecvFromCtx[T any](ctx context.Context, chs ...<-chan T) (T, bool) {
 	if _, v, ok := reflect.Select(append(
 		MapEach(chs, func(ch <-chan T) reflect.SelectCase {
 			return recvCase(ch)
