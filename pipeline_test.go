@@ -10,7 +10,7 @@ import (
 )
 
 func TestPipeline(t *testing.T) {
-	inCh, outCh := dj.NewPipeline(context.Background(), 2, func(ctx context.Context, v int) dj.Result[int] {
+	inCh, outCh := dj.NewPipeline(context.Background(), 1, 2, func(ctx context.Context, v int) dj.Result[int] {
 		return dj.Ok(v * 2)
 	})
 
@@ -30,8 +30,23 @@ func TestPipeline(t *testing.T) {
 	require.Equal(t, 4, (<-outCh).Value())
 }
 
+func TestPipeline_NoBuffer(t *testing.T) {
+	inCh, outCh := dj.NewPipeline(context.Background(), 1, -1, func(ctx context.Context, v int) dj.Result[int] {
+		return dj.Ok(v * 2)
+	})
+
+	// No buffer, so writes never block.
+	dj.ForN(10, func(i int) {
+		inCh <- i
+	})
+
+	dj.ForN(10, func(i int) {
+		require.Equal(t, i*2, (<-outCh).Value())
+	})
+}
+
 func TestPipeline_Error(t *testing.T) {
-	inCh, outCh := dj.NewPipeline(context.Background(), 2, func(ctx context.Context, v string) dj.Result[int] {
+	inCh, outCh := dj.NewPipeline(context.Background(), 1, 2, func(ctx context.Context, v string) dj.Result[int] {
 		return dj.NewResult(strconv.Atoi(v))
 	})
 

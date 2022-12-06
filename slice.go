@@ -70,6 +70,34 @@ func EqualFn[T any](in [][]T, eq func(T, T) bool) bool {
 	return true
 }
 
+// ElementsMatch returns true if the given slices contain the same elements.
+func ElementsMatch[T comparable](in ...[]T) bool {
+	return ElementsMatchFn(in, func(a, b T) bool {
+		return a == b
+	})
+}
+
+// ElementsMatchFn returns true if the given slices contain the same elements, according to the given function.
+func ElementsMatchFn[T any](in [][]T, eq func(T, T) bool) bool {
+	if !Same(MapEach(in, func(slice []T) int { return len(slice) })...) {
+		return false
+	}
+
+	for _, slice := range in {
+		if !All(slice, func(v T) bool {
+			return All(in, func(slice []T) bool {
+				return Any(slice, func(w T) bool {
+					return eq(v, w)
+				})
+			})
+		}) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Concat returns a slice of the elements in the given slices.
 func Concat[T any](in ...[]T) []T {
 	out := make([]T, 0, Sum(MapEach(in, func(slice []T) int { return len(slice) })))
@@ -243,7 +271,9 @@ func ContainsAny[T comparable](in []T, elems ...T) bool {
 
 // ContainsNone returns true if the given slice contains none of the given elements.
 func ContainsNone[T comparable](in []T, elems ...T) bool {
-	return !ContainsAny(in, elems...)
+	return None(elems, func(elem T) bool {
+		return Contains(in, elem)
+	})
 }
 
 // Before returns all elements in the given slice before the given element.
@@ -371,8 +401,8 @@ func Difference[T comparable](a, b []T) []T {
 
 // DifferenceFn returns a slice of the elements that are in the first slice but not the second, according to the given function.
 func DifferenceFn[T any](a, b []T, eq func(T, T) bool) []T {
-	return Filter(a, func(v T) bool {
-		return !Any(b, func(u T) bool {
+	return RemoveFn(a, func(v T) bool {
+		return Any(b, func(u T) bool {
 			return eq(u, v)
 		})
 	})

@@ -72,7 +72,7 @@ func TestPipe_Forward(t *testing.T) {
 	dj.ForWindow(pipes, 2, func(pair []pipe) {
 		go func() {
 			defer close(pair[1].in)
-			dj.ForwardChan([]<-chan int{pair[0].out}, []chan<- int{pair[1].in})
+			dj.Forward([]<-chan int{pair[0].out}, []chan<- int{pair[1].in})
 		}()
 	})
 

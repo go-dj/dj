@@ -62,6 +62,62 @@ func TestEqual(t *testing.T) {
 	}
 }
 
+func TestElementsMatch(t *testing.T) {
+	tests := []struct {
+		name string
+		in   [][]int
+		want bool
+	}{
+		{
+			name: "[1]",
+			in:   [][]int{{1}},
+			want: true,
+		},
+
+		{
+			name: "[1, 2]",
+			in:   [][]int{{1, 2}},
+			want: true,
+		},
+
+		{
+			name: "[1, 2], [1, 2]",
+			in:   [][]int{{1, 2}, {1, 2}},
+			want: true,
+		},
+
+		{
+			name: "[2, 1], [1, 2]",
+			in:   [][]int{{1, 2}, {2, 1}},
+			want: true,
+		},
+
+		{
+			name: "[1, 2], [1, 3]",
+			in:   [][]int{{1, 2}, {1, 3}},
+			want: false,
+		},
+
+		{
+			name: "[1, 2, 3], [1, 3, 2], [2, 1, 3]",
+			in:   [][]int{{1, 2, 3}, {1, 3, 2}, {2, 1, 3}},
+			want: true,
+		},
+
+		{
+			name: "[1, 2, 3], [1, 3, 2], [2, 1, 4]",
+			in:   [][]int{{1, 2, 3}, {1, 3, 2}, {2, 1, 3}},
+			want: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, dj.ElementsMatch(tt.in...))
+		})
+	}
+}
+
 func TestJoin(t *testing.T) {
 	tests := []struct {
 		name string

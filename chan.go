@@ -155,20 +155,20 @@ func FanOutCtx[T any](ctx context.Context, ch <-chan T, n int) []<-chan T {
 
 	go func() {
 		defer CloseChan(AsSend(out...)...)
-		ForwardChanCtx(ctx, []<-chan T{ch}, AsSend(out...))
+		ForwardCtx(ctx, []<-chan T{ch}, AsSend(out...))
 	}()
 
 	return AsRecv(out...)
 }
 
-// ForwardChan forwards values from the src channel(s) to the dst channel(s).
-func ForwardChan[T any](src []<-chan T, dst []chan<- T) {
-	ForwardChanCtx(context.Background(), src, dst)
+// Forward forwards values from the src channel(s) to the dst channel(s).
+func Forward[T any](src []<-chan T, dst []chan<- T) {
+	ForwardCtx(context.Background(), src, dst)
 }
 
-// ForwardChanCtx forwards values from the src channel(s) to the dst channel(s).
+// ForwardCtx forwards values from the src channel(s) to the dst channel(s).
 // It stops forwarding when the context is canceled.
-func ForwardChanCtx[T any](ctx context.Context, src []<-chan T, dst []chan<- T) {
+func ForwardCtx[T any](ctx context.Context, src []<-chan T, dst []chan<- T) {
 	ForChanCtx(ctx, FanInCtx(ctx, src...), func(ctx context.Context, v T) {
 		SendToCtx(ctx, v, dst...)
 	})
@@ -191,7 +191,7 @@ func ConcatChanCtx[T any](ctx context.Context, chs ...<-chan T) <-chan T {
 		defer close(out)
 
 		for _, ch := range chs {
-			ForwardChanCtx(ctx, []<-chan T{ch}, AsSend(out))
+			ForwardCtx(ctx, []<-chan T{ch}, AsSend(out))
 		}
 	}()
 
@@ -216,7 +216,7 @@ func ZipChanCtx[T any](ctx context.Context, chs ...<-chan T) <-chan []T {
 			return ChanIterCtx(ctx, ch)
 		})...).Recv()
 
-		ForwardChanCtx(ctx, []<-chan []T{in}, AsSend(out))
+		ForwardCtx(ctx, []<-chan []T{in}, AsSend(out))
 	}()
 
 	return out

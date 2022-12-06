@@ -43,7 +43,7 @@ func TestForwarChan(t *testing.T) {
 	// Forward the src channels to the dst channels.
 	go func() {
 		defer dj.CloseChan(dj.AsSend(dst...)...)
-		dj.ForwardChan(src, dj.AsSend(dst...))
+		dj.Forward(src, dj.AsSend(dst...))
 	}()
 
 	// Collect the results.

@@ -24,3 +24,7 @@ func (r Result[T]) Value() T {
 func (r Result[T]) Error() error {
 	return r.err
 }
+
+func (r Result[T]) Unpack() (T, error) {
+	return r.val, r.err
+}
