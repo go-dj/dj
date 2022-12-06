@@ -246,6 +246,38 @@ func ContainsNone[T comparable](in []T, elems ...T) bool {
 	return !ContainsAny(in, elems...)
 }
 
+// Before returns all elements in the given slice before the given element.
+func Before[T comparable](in []T, elem T) []T {
+	return BeforeFn(in, func(v T) bool {
+		return v == elem
+	})
+}
+
+// BeforeFn returns all elements in the given slice before the first element that satisfies the given function.
+func BeforeFn[T any](in []T, fn func(T) bool) []T {
+	if idx := IndexFn(in, fn); idx >= 0 {
+		return in[:idx]
+	}
+
+	return in
+}
+
+// After returns all elements in the given slice after the given element.
+func After[T comparable](in []T, elem T) []T {
+	return AfterFn(in, func(v T) bool {
+		return v == elem
+	})
+}
+
+// AfterFn returns all elements in the given slice after the first element that satisfies the given function.
+func AfterFn[T any](in []T, fn func(T) bool) []T {
+	if idx := IndexFn(in, fn); idx >= 0 {
+		return in[idx+1:]
+	}
+
+	return in
+}
+
 // Index returns the index of the given element in the given slice, or -1 if it is not found.
 func Index[T comparable](in []T, elem T) int {
 	return IndexFn(in, func(v T) bool {
@@ -331,27 +363,17 @@ func IntersectFn[T any](in [][]T, eq func(T, T) bool) []T {
 }
 
 // Difference returns a slice of the elements that are in the first slice but not the second.
-func Difference[T comparable](in ...[]T) []T {
-	return DifferenceFn(in, func(a, b T) bool {
+func Difference[T comparable](a, b []T) []T {
+	return DifferenceFn(a, b, func(a, b T) bool {
 		return a == b
 	})
 }
 
 // DifferenceFn returns a slice of the elements that are in the first slice but not the second, according to the given function.
-func DifferenceFn[T any](in [][]T, eq func(T, T) bool) []T {
-	if len(in) == 0 {
-		return nil
-	}
-
-	if len(in) == 1 {
-		return in[0]
-	}
-
-	return Reduce(in[1:], in[0], func(a, b []T) []T {
-		return Filter(a, func(v T) bool {
-			return !Any(b, func(u T) bool {
-				return eq(u, v)
-			})
+func DifferenceFn[T any](a, b []T, eq func(T, T) bool) []T {
+	return Filter(a, func(v T) bool {
+		return !Any(b, func(u T) bool {
+			return eq(u, v)
 		})
 	})
 }
